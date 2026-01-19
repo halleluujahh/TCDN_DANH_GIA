@@ -1,0 +1,6 @@
+@MISA_Workshift_HostAddress = http://localhost:5095
+
+GET {{MISA_Workshift_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,28 @@
+{
+  "name": "misa-fe",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.13.2",
+    "devextreme": "^25.2.3",
+    "devextreme-vue": "^25.2.3",
+    "floating-vue": "^5.2.2",
+    "lodash": "^4.17.21",
+    "pinia": "^3.0.4",
+    "prism-code-editor": "^4.2.0",
+    "qs": "^6.14.1",
+    "vue": "^3.5.24",
+    "vue-router": "^4.6.4",
+    "vue3-treeview": "^0.4.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.1",
+    "vite": "^7.2.4"
+  }
+}
