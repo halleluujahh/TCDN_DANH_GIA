@@ -1,4 +1,15 @@
-﻿using System;
+﻿/// <summary>
+/// ShiftUpdateDtoRequest - DTO cho yêu cầu cập nhật Ca làm việc
+/// Chứa đầy đủ thông tin của ca bao gồm:
+/// - ShiftId: ID của ca cần cập nhật
+/// - Thông tin cơ bản: Mã, Tên, Mô tả
+/// - Thời gian: Giờ vào/ra, Giờ nghỉ
+/// - Tính toán: Thời gian làm việc, Thời gian nghỉ
+/// - ShiftStatus: Trạng thái ca (0: Inactive, 1: Active)
+/// Sử dụng FluentValidation để validate dữ liệu
+/// Created By: hanv - 20/01/2026
+/// </summary>
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

@@ -1,4 +1,15 @@
-﻿using MISA_Core.Dtos.Response;
+﻿/// <summary>
+/// IBaseRepo - Interface định nghĩa các chức năng CRUD cơ bản cho mọi entity
+/// Generic interface cho Repository Pattern:
+/// - GetAll, GetById, GetByFieldName: Truy vấn dữ liệu
+/// - GetPagination: Phân trang
+/// - Save: Tạo mới
+/// - Update, UpdateByFieldName: Cập nhật
+/// - DeleteByIds: Xóa
+/// Implement bởi BaseRepo trong MISA_Infrastructure layer
+/// Created By: hanv - 20/01/2026
+/// </summary>
+using MISA_Core.Dtos.Response;
 using System;
 using System.Collections.Generic;
 using System.Linq;

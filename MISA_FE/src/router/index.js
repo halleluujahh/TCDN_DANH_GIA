@@ -1,10 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import AppLayout from "../layouts/AppLayout.vue";
 
-/**
- * Root router configuration mapping application modules to layout and views.
- * @type {import('vue-router').Router}
- */
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [

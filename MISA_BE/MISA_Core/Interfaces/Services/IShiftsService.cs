@@ -1,4 +1,14 @@
-﻿using MISA_Core.Dtos.Request;
+﻿/// <summary>
+/// IShiftsService - Interface định nghĩa các chức năng nghiệp vụ cho Ca làm việc
+/// Định nghĩa các phương thức:
+/// - Đọc: GetAll, GetPagination, GetPaginationFilter
+/// - Tạo: SaveShift
+/// - Sửa: Update, UpdateShiftStatusToActiveById, UpdateShiftStatusToInactiveById
+/// - Xóa: DeleteByIds
+/// Implement bởi ShiftsService trong MISA_Core layer
+/// Created By: hanv - 20/01/2026
+/// </summary>
+using MISA_Core.Dtos.Request;
 using MISA_Core.Dtos.Response;
 using MISA_Core.Entities;
 using System;

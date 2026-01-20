@@ -1,3 +1,10 @@
+/// <summary>
+/// Program.cs - Entry point của ứng dụng MISA Workshift Management
+/// Cấu hình Dependency Injection, Middleware, CORS, Swagger
+/// Đăng ký các service: Repository, Service, Validator, Database Connection
+/// Xử lý Exception toàn cục thông qua GlobalExceptionMiddleware
+/// Created By: hanv - 20/01/2026
+/// </summary>
 using FluentValidation;
 using MISA_Api.Middleware;
 using MISA_Core.Dtos.Request;

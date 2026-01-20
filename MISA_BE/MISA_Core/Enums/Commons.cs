@@ -1,4 +1,15 @@
-﻿using System;
+﻿/// <summary>
+/// Commons - Chứa các Enum chung cho toàn ứng dụng
+/// Bao gồm:
+/// - StatusCode: Mã HTTP status code
+/// - StatusShift: Trạng thái ca làm việc (Inactive/Active)
+/// - FilterColumnType: Kiểu lọc văn bản (Contains, StartWith, EndWith...)
+/// - DateFilterColumnType: Kiểu lọc ngày tháng (Equal, Greater, Less...)
+/// - SortType: Kiểu sắp xếp (Ascending, Descending, Default)
+/// Sử dụng trong Repository, Service, Controller layers
+/// Created By: hanv - 20/01/2026
+/// </summary>
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

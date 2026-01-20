@@ -1888,7 +1888,13 @@ function resetMenuUnlessFilterModal() {
   propsTable.value.tableData.styleHeaderContainer = {};
   propsTable.value.tableData.styleMoreContainer = {};
 }
-// Hàm tính toán vị trí hiển thị của menu
+/**
+ * Tính toán vị trí hiển thị menu (sort/more/filter) dựa trên vị trí nút được click
+ * @param {Event} event - Sự kiện click từ nút hành động
+ * @param {number} [menuWidth=450] - Độ rộng menu để tránh tràn màn hình
+ * @returns {Object} Tọa độ top/left/right dạng px
+ * Created By hanv 20/01/2026
+ */
 function calculatePositionMenu(event, menuWidth = 450) {
   // Lấy vị trí của phần tử nút hành động
   const rect = event.currentTarget.getBoundingClientRect();
@@ -1942,6 +1948,10 @@ function calculatePositionMenu(event, menuWidth = 450) {
   return { top: `${top}px`, right, left };
 }
 
+/**
+ * Đồng bộ giá trị filter type từ modal lọc về header cột hiện tại
+ * Created By hanv 20/01/2026
+ */
 watch(
   () => propsTable.value.tableData.styleColumnValueModal.valueFilterType,
   (newVal) => {
@@ -1953,6 +1963,10 @@ watch(
   },
 );
 
+/**
+ * Đồng bộ kiểu filter từ modal lọc về header cột hiện tại
+ * Created By hanv 20/01/2026
+ */
 watch(
   () => propsTable.value.tableData.styleColumnValueModal.filterType,
   (newVal) => {
@@ -1963,6 +1977,13 @@ watch(
     }
   },
 );
+/**
+ * Mở/đóng modal lọc giá trị cột và cấu hình menu filter
+ * @param {number} indexTbhItems - Index cột trong header
+ * @param {Event} event - Sự kiện click nút filter
+ * @returns {Promise<void>}
+ * Created By hanv 20/01/2026
+ */
 async function openFilterValueColumnModal(indexTbhItems, event) {
   // Kiểm tra phần tử hiện tại tồn tại hay không
   if (!event?.currentTarget) return;
@@ -2078,7 +2099,12 @@ async function openFilterValueColumnModal(indexTbhItems, event) {
       .isOpenFilterColumnValueModal;
   propsTable.value.tableData.indexTbhItem = indexTbhItems;
 }
-// Mở select box cho nút hành động sắp xếp cột
+/**
+ * Mở/đóng select box sắp xếp cột, thiết lập vị trí hiển thị
+ * @param {Event} event - Sự kiện click nút sort
+ * @param {number} indexTbhItems - Index cột trong header
+ * Created By hanv 20/01/2026
+ */
 function openSortMenuSelectBox(event, indexTbhItems) {
   // Kiểm tra phần tử hiện tại tồn tại hay không
   if (!event?.currentTarget) return;
@@ -2151,7 +2177,14 @@ function openSortMenuSelectBox(event, indexTbhItems) {
     !propsTable.value.tableData.header[indexTbhItems].isOpenSortMenu;
   propsTable.value.tableData.indexTbhItem = indexTbhItems;
 }
-// Mở select box cho nút hành động "Khác"
+/**
+ * Mở/đóng select box "Khác" cho từng hàng, cấu hình menu hành động
+ * @param {Event} event - Sự kiện click nút more
+ * @param {number} indexTbdItem - Index dòng trong body
+ * @param {number} indexBtnAction - Index nút hành động trong dòng
+ * @param {Object} shiftUpdated - Dữ liệu ca làm việc tương ứng
+ * Created By hanv 20/01/2026
+ */
 function openMoreMenuSelectBox(
   event,
   indexTbdItem,
@@ -2223,11 +2256,20 @@ function openMoreMenuSelectBox(
   propsTable.value.tableData.indexTbdItem = indexTbdItem;
   propsTable.value.tableData.indexBtnAction = indexBtnAction;
 }
-// Hàm xử lý thay đổi danh sách ID được chọn
+/**
+ * Cập nhật danh sách ID đang được chọn trong bảng
+ * @param {Array} selectedIds - Danh sách ID được chọn
+ * Created By hanv 20/01/2026
+ */
 function handleChangedSelectedIds(selectedIds) {
   propsTable.value.tableData.idsSelected = selectedIds;
 }
-// Lấy text hành động thay đổi trạng thái
+/**
+ * Lấy text hành động thay đổi trạng thái (Ngừng sử dụng/Sử dụng)
+ * @param {number} indexTbdItem - Index dòng trong body
+ * @returns {string} Nhãn hành động tương ứng trạng thái hiện tại
+ * Created By hanv 20/01/2026
+ */
 function getStatusActionText(indexTbdItem) {
   const row = propsTable.value.tableData.body[indexTbdItem];
   if (!row) return "";
@@ -2351,7 +2393,12 @@ function generateRowDataTableBody(item) {
     ],
   };
 }
-// Gọi API lấy danh sách ca làm việc phân trang
+/**
+ * Gọi API lấy danh sách ca làm việc (phân trang)
+ * Reset body và cập nhật pagination.totalCount
+ * @returns {Promise<void>}
+ * Created By hanv 20/01/2026
+ */
 const loadShifts = async () => {
   try {
     appStore.setIsLoading(true);
@@ -2377,6 +2424,11 @@ const loadShifts = async () => {
     appStore.setIsLoading(false);
   }
 };
+/**
+ * Gọi API lấy danh sách ca làm việc với filter & phân trang
+ * @returns {Promise<void>}
+ * Created By hanv 20/01/2026
+ */
 const loadShiftsWithFilter = async () => {
   appStore.setIsLoading(true);
 
@@ -2403,10 +2455,20 @@ const loadShiftsWithFilter = async () => {
     });
   appStore.setIsLoading(false);
 };
-// Hàm xử lý thay đổi trang hiện tại
+/**
+ * Cập nhật trang hiện tại của bảng
+ * @param {number} newPage - Trang mới
+ * Created By hanv 20/01/2026
+ */
 function handleChangeCurrentPage(newPage) {
   propsTable.value.tableData.pagination.currentPage = newPage;
 }
+/**
+ * Reload dữ liệu bảng theo trạng thái filter hiện tại
+ * Đặt currentPage về 0 và gọi API phù hợp
+ * @returns {Promise<void>}
+ * Created By hanv 20/01/2026
+ */
 async function reloadData() {
   propsTable.value.tableData.pagination.currentPage = 0;
   if (
@@ -2419,6 +2481,10 @@ async function reloadData() {
   await loadShifts();
 }
 // Watcher để theo dõi thay đổi trong phân trang và tải lại dữ liệu
+/**
+ * Theo dõi thay đổi pageSize để reload dữ liệu
+ * Created By hanv 20/01/2026
+ */
 watch(
   () => propsTable.value.tableData.pagination.pageSize,
   async () => {
@@ -2426,6 +2492,10 @@ watch(
   },
   { deep: true },
 );
+/**
+ * Theo dõi thay đổi currentPage để load dữ liệu phù hợp filter
+ * Created By hanv 20/01/2026
+ */
 watch(
   () => propsTable.value.tableData.pagination.currentPage,
   async () => {

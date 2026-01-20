@@ -1,4 +1,14 @@
-﻿using Dapper;
+﻿/// <summary>
+/// ShiftsRepo - Repository xử lý data access cho Ca làm việc
+/// Kế thừa từ BaseRepo và mở rộng các chức năng chuyên biệt:
+/// - Lọc nâng cao: Tìm kiếm theo từ khóa, lọc theo nhiều cột (Contains, StartWith, EndWith...)
+/// - Lọc theo ngày tháng với nhiều điều kiện (Equal, Greater, Less...)
+/// - Sắp xếp động theo nhiều cột (Ascending, Descending)
+/// - Phân trang với LIMIT và OFFSET
+/// Sử dụng Dapper để thực thi câu lệnh SQL động
+/// Created By: hanv - 20/01/2026
+/// </summary>
+using Dapper;
 using Microsoft.Extensions.Logging;
 using MISA_Core.Dtos.Request;
 using MISA_Core.Dtos.Response;
@@ -22,11 +32,29 @@ namespace MISA_Infrastructure.Repository
     public class ShiftsRepo : BaseRepo<Shift>, IShiftsRepo
     {
         private IDatabaseConnection _databaseConnection;
+        
+        /// <summary>
+        /// Constructor - Khởi tạo ShiftsRepo
+        /// </summary>
+        /// <param name="connection">Database connection interface</param>
         public ShiftsRepo(IDatabaseConnection connection) : base(connection)
         {
             _databaseConnection = connection;
         }
 
+        /// <summary>
+        /// Lấy danh sách ca làm việc có phân trang và lọc nâng cao
+        /// Xây dựng câu lệnh SQL động dựa trên các điều kiện lọc:
+        /// - SearchKeyword: Tìm kiếm theo từ khóa trên nhiều cột
+        /// - FilterColumnType: Lọc văn bản (Contains, Different, StartWith, EndWith, NotContains)
+        /// - DateFilterColumnType: Lọc ngày (Equal, Greater, Less, Empty, NotEmpty...)
+        /// - SortType: Sắp xếp (Ascending, Descending)
+        /// Sử dụng DynamicParameters để tránh SQL Injection
+        /// </summary>
+        /// <param name="pageSize">Số lượng bản ghi trên mỗi trang</param>
+        /// <param name="currentPage">Trang hiện tại</param>
+        /// <param name="shiftFilter">Bộ lọc chứa điều kiện tìm kiếm và lọc</param>
+        /// <returns>OperationResult chứa danh sách ca đã lọc</returns>
         public async Task<OperationResult<Shift>> GetPaginationFilter(int pageSize, int currentPage, ShiftFilter shiftFilter)
         {
             using (var conn = _databaseConnection.Connection())

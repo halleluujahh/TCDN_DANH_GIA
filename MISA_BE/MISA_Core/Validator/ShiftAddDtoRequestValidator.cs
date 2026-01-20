@@ -1,4 +1,14 @@
-﻿using FluentValidation;
+﻿/// <summary>
+/// ShiftAddDtoRequestValidator - Validator cho ShiftAddDtoRequest
+/// Sử dụng FluentValidation để validate dữ liệu khi tạo mới ca làm việc:
+/// - ShiftCode: Bắt buộc, không quá 20 ký tự
+/// - ShiftName: Bắt buộc, không quá 50 ký tự
+/// - ShiftBeginTime: Bắt buộc, định dạng HH:mm (5 ký tự)
+/// - ShiftEndTime: Bắt buộc, định dạng HH:mm (5 ký tự)
+/// Trả về ValidationResult với thông báo lỗi tiếng Việt
+/// Created By: hanv - 20/01/2026
+/// </summary>
+using FluentValidation;
 using MISA_Core.Dtos.Request;
 using MISA_Core.Entities;
 using System;
@@ -11,6 +21,9 @@ namespace MISA_Core.Validator
 {
     public class ShiftAddDtoRequestValidator : AbstractValidator<ShiftAddDtoRequest>
     {
+        /// <summary>
+        /// Constructor - Định nghĩa các rule validate cho ShiftAddDtoRequest
+        /// </summary>
         public ShiftAddDtoRequestValidator()
         {
             RuleFor(x => x.ShiftCode).NotEmpty().WithMessage("Mã ca không được để trống.")

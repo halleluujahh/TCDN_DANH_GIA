@@ -1,4 +1,15 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+﻿/// <summary>
+/// GlobalExceptionMiddleware - Middleware xử lý exception toàn cục
+/// Bắt và xử lý tất cả các exception chưa được handle trong ứng dụng:
+/// - IAppException: BadRequestException, NotFoundException (với status code tương ứng)
+/// - UnauthorizedAccessException: 401
+/// - KeyNotFoundException: 404
+/// - Các exception khác: 500 Internal Server Error
+/// Trả về response chuẩn ErrorsResponseDto với thông tin chi tiết lỗi
+/// Ghi log chi tiết exception với TraceId để debug
+/// Created By: hanv - 20/01/2026
+/// </summary>
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -14,10 +25,24 @@ namespace MISA_Api.Middleware
     public class GlobalExceptionMiddleware : IExceptionHandler
     {
         public readonly ILogger<GlobalExceptionMiddleware> _logger;
+        
+        /// <summary>
+        /// Constructor - Khởi tạo GlobalExceptionMiddleware
+        /// </summary>
+        /// <param name="logger">Logger để ghi log exception</param>
         public GlobalExceptionMiddleware(ILogger<GlobalExceptionMiddleware> logger)
         {
             _logger = logger;
         }
+        
+        /// <summary>
+        /// Xử lý exception và trả về response lỗi chuẩn
+        /// Ánh xạ exception sang HTTP status code phù hợp
+        /// </summary>
+        /// <param name="httpContext">HTTP context hiện tại</param>
+        /// <param name="exception">Exception cần xử lý</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>True nếu exception đã được xử lý thành công</returns>
         public async ValueTask<bool> TryHandleAsync(
               HttpContext httpContext,
               Exception exception,

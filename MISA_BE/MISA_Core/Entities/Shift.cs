@@ -1,4 +1,15 @@
-﻿using MISA_Core.Attributes;
+﻿/// <summary>
+/// Shift Entity - Biểu diễn thông tin Ca làm việc trong hệ thống
+/// Chứa thông tin về:
+/// - Thông tin cơ bản: Mã, Tên, Mô tả
+/// - Thời gian: Giờ vào ca, Giờ ra ca, Giờ bắt đầu/kết thúc nghỉ giữa ca
+/// - Tính toán: Tổng thời gian làm việc, Tổng thời gian nghỉ
+/// - Trạng thái: Active/Inactive
+/// - Audit: CreatedBy, CreatedDate, ModifiedBy, ModifiedDate
+/// Sử dụng TableAttribute và ColumnAttribute để map với database
+/// Created By: hanv - 20/01/2026
+/// </summary>
+using MISA_Core.Attributes;
 using MISA_Core.Entities.Base;
 using TableAttribute = MISA_Core.Attributes.TableAttribute;
 
