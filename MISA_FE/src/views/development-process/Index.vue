@@ -1,7 +1,17 @@
 <script setup>
 import BasePageHeader from "@/components/base/BasePageHeader.vue";
 
+/**
+ * DevelopmentView - Trang phát triển (placeholder)
+ * Hiển thị message chỉ báo tính năng đang trong quá trình phát triển
+ * Created By hanv 20/01/2026
+ */
+
 const props = defineProps({
+  /**
+   * Tiêu đề trang
+   * @type {String}
+   */
   title: {
     type: String,
   },
@@ -19,7 +29,5 @@ const props = defineProps({
     </div>
   </div>
 </template>
-
-<style scoped></style>
 
 <style scoped></style>

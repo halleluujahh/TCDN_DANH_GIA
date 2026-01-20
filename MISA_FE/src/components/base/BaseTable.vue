@@ -1,5 +1,13 @@
 <script setup>
-import { reactive, ref, watch, computed, onUpdated } from "vue";
+import {
+  reactive,
+  ref,
+  watch,
+  computed,
+  onUpdated,
+  onMounted,
+  onUnmounted,
+} from "vue";
 import BaseBtn from "./BaseBtn.vue";
 import BaseCombobox from "./BaseCombobox.vue";
 import BaseInput from "./BaseInput.vue";
@@ -10,20 +18,46 @@ import BaseModalError from "./BaseModalError.vue";
 import BaseSelectBox from "../BaseSelectBox.vue";
 import { Enums } from "../../commons/enums";
 import { debounce } from "lodash";
+import { useAppStore } from "../../stores/appStore";
+
+/**
+ * BaseTable Component - Bảng dữ liệu với full features
+ * Hỗ trợ: selection, sorting, filtering, searching, column resize, pagination
+ * Quản lý trạng thái selection và emit các actions cho parent component
+ * Created By hanv 20/01/2026
+ */
+
+const appStore = useAppStore();
 
 const props = defineProps({
+  /**
+   * Dữ liệu bảng: header, body, pagination, styles, index
+   * @type {Object}
+   */
   tableData: {
     type: Object,
     default: () => ({}),
   },
+  /**
+   * Callback function để load dữ liệu
+   * @type {Function}
+   */
   loadData: {
     type: Function,
     default: () => {},
   },
+  /**
+   * Configuration cho delete confirm modal
+   * @type {Object}
+   */
   deleteConfirmModal: {
     type: Object,
     default: () => ({}),
   },
+  /**
+   * Filter reference object chứa search keyword và filter conditions
+   * @type {Object}
+   */
   filterRef: {
     type: Object,
     default: () => ({}),
@@ -34,7 +68,11 @@ const props = defineProps({
 const tableDataClone = reactive(cloneDeep(props.tableData));
 const updateInProgress = ref(false);
 
-// Đồng bộ dữ liệu khi props.tableData thay đổi
+/**
+ * Đồng bộ dữ liệu khi props.tableData thay đổi
+ * Cập nhật tableDataClone với dữ liệu mới từ parent
+ * Created By hanv 20/01/2026
+ */
 watch(
   () => props.tableData,
   (newVal) => {
@@ -46,29 +84,54 @@ watch(
   },
   { deep: true },
 );
-// Xem có chọn tất cả
+
+/**
+ * Kiểm tra tất cả dòng đã chọn hay không
+ * @returns {Boolean} true nếu tất cả dòng được chọn
+ * Created By hanv 20/01/2026
+ */
 const isAllSelected = computed(() => {
   return (
     tableDataClone.body.length > 0 &&
     tableDataClone.body.every((item) => item.row.isSelected)
   );
 });
-// Xem có chọn một phần
+
+/**
+ * Kiểm tra có chọn một phần dòng (không phải tất cả, không phải 0)
+ * @returns {Boolean} true nếu chọn một phần
+ * Created By hanv 20/01/2026
+ */
 const isIndeterminate = computed(() => {
   const selectedCount = tableDataClone.body.filter(
     (item) => item.row.isSelected,
   ).length;
   return selectedCount > 0 && selectedCount < tableDataClone.body.length;
 });
-// Xem có chọn bất kỳ dòng nào không
+
+/**
+ * Kiểm tra có chọn bất kỳ dòng nào không
+ * @returns {Boolean} true nếu có dòng được chọn
+ * Created By hanv 20/01/2026
+ */
 const isAnySelection = computed(() => {
   return tableDataClone.body.some((item) => item.row.isSelected);
 });
-// Đếm tổng số dòng đã chọn
+
+/**
+ * Đếm tổng số dòng đã chọn
+ * @returns {Number} Số dòng được chọn
+ * Created By hanv 20/01/2026
+ */
 const selectedCount = computed(() => {
   return tableDataClone.body.filter((item) => item.row.isSelected).length;
 });
-// Lấy mảng id của các row đã chọn
+
+/**
+ * Lấy mảng ShiftId của các row đã chọn
+ * @returns {Array<String>} Mảng ID được chọn
+ * Created By hanv 20/01/2026
+ */
 const selectedIds = computed(() => {
   return tableDataClone.body
     .filter((item) => item.row.isSelected)
@@ -82,7 +145,10 @@ const selectedIds = computed(() => {
     .filter((id) => id !== null);
 });
 
-// Watch selectedIds và emit khi có thay đổi
+/**
+ * Watch selectedIds và emit khi có thay đổi
+ * Created By hanv 20/01/2026
+ */
 watch(selectedIds, (newIds, oldIds) => {
   // Chỉ emit khi giá trị thực sự thay đổi
   if (JSON.stringify(newIds) !== JSON.stringify(oldIds)) {
@@ -119,16 +185,29 @@ const selectedRowsStatus = computed(() => {
   return { hasActive, hasInactive };
 });
 
-// Computed để hiển thị nút Active
+/**
+ * Hiển thị nút Active khi có dòng Inactive được chọn
+ * @returns {Boolean} true nếu nên hiển thị
+ * Created By hanv 20/01/2026
+ */
 const showActiveButton = computed(() => {
   return selectedRowsStatus.value.hasInactive;
 });
 
-// Computed để hiển thị nút Inactive
+/**
+ * Hiển thị nút Inactive khi có dòng Active được chọn
+ * @returns {Boolean} true nếu nên hiển thị
+ * Created By hanv 20/01/2026
+ */
 const showInactiveButton = computed(() => {
   return selectedRowsStatus.value.hasActive;
 });
 
+/**
+ * Kiểm tra có filter nào được áp dụng không
+ * @returns {Boolean} true nếu có bộ lọc đang active
+ * Created By hanv 20/01/2026
+ */
 const isShowBtnRemoveAllConditionFilter = computed(() => {
   // Dùng cả props và tableDataClone để ensure reactivity
   const headers = props.tableData?.header || tableDataClone.header || [];
@@ -141,7 +220,11 @@ const isShowBtnRemoveAllConditionFilter = computed(() => {
   );
 });
 
-// Computed cho filter tooltip text
+/**
+ * Tooltip text cho filter column
+ * @returns {String} Text mô tả filter được áp dụng
+ * Created By hanv 20/01/2026
+ */
 const filterTooltipText = computed(() => {
   const filterType = tableDataClone.styleColumnValueModal?.filterType;
   const selectedItem = tableDataClone.styleColumnValueModal?.items?.find(
@@ -154,7 +237,11 @@ const filterTooltipText = computed(() => {
     : String(CONSTANTS.FILTER_COLUMN_TYPE_TEXT[value] || "");
 });
 
-// Computed cho selectbox visibility
+/**
+ * Trạng thái mở/đóng selectbox của action button
+ * @returns {Boolean} true nếu selectbox đang mở
+ * Created By hanv 20/01/2026
+ */
 const isSelectBoxOpen = computed(() => {
   const item = tableDataClone.body?.[tableDataClone.indexTbdItem];
   return (
@@ -163,7 +250,11 @@ const isSelectBoxOpen = computed(() => {
   );
 });
 
-// Computed cho sort menu visibility
+/**
+ * Trạng thái mở/đóng sort menu
+ * @returns {Boolean} true nếu sort menu đang mở
+ * Created By hanv 20/01/2026
+ */
 const isSortMenuOpen = computed(() => {
   return (
     tableDataClone.header?.[tableDataClone.indexTbhItem]?.isOpenSortMenu ||
@@ -171,7 +262,11 @@ const isSortMenuOpen = computed(() => {
   );
 });
 
-// Computed cho filter modal visibility
+/**
+ * Trạng thái mở/đóng filter modal
+ * @returns {Boolean} true nếu filter modal đang mở
+ * Created By hanv 20/01/2026
+ */
 const isFilterModalOpen = computed(() => {
   return (
     tableDataClone.header?.[tableDataClone.indexTbhItem]
@@ -179,13 +274,21 @@ const isFilterModalOpen = computed(() => {
   );
 });
 
-// Computed cho trang cuối cùng
+/**
+ * Tính toán trang cuối cùng dựa trên total count và page size
+ * @returns {Number} Index của trang cuối cùng (0-based)
+ * Created By hanv 20/01/2026
+ */
 const lastPage = computed(() => {
   const { totalCount, pageSize } = props.tableData.pagination;
   return Math.ceil(totalCount / pageSize) - 1;
 });
 
-// Toggle checkbox (cho phép chọn/bỏ chọn)
+/**
+ * Toggle checkbox - Chọn/bỏ chọn một dòng
+ * @param {Number} index - Index của dòng trong bảng
+ * Created By hanv 20/01/2026
+ */
 function toggleCheckbox(index) {
   updateInProgress.value = true;
   tableDataClone.body[index].row.isSelected =
@@ -200,7 +303,13 @@ const clickTimer = ref(null);
 const clickCount = ref(0);
 const lastClickedIndex = ref(null);
 
-// Chọn row (phát hiện double click)
+/**
+ * Xử lý chọn dòng - Phát hiện double click để mở modal edit
+ * Single click: chọn dòng
+ * Double click: emit event mở modal edit
+ * @param {Number} index - Index của dòng trong bảng
+ * Created By hanv 20/01/2026
+ */
 function selectRow(index) {
   updateInProgress.value = true;
 
@@ -242,7 +351,12 @@ function selectRow(index) {
     updateInProgress.value = false;
   }, 0);
 }
-// Chọn hoặc bỏ chọn tất cả dòng
+
+/**
+ * Toggle chọn/bỏ chọn tất cả dòng
+ * Nếu đã chọn tất cả thì bỏ chọn, ngược lại thì chọn tất cả
+ * Created By hanv 20/01/2026
+ */
 function toggleSelectAllTr() {
   updateInProgress.value = true;
   const allSelected = isAllSelected.value;
@@ -253,6 +367,11 @@ function toggleSelectAllTr() {
     updateInProgress.value = false;
   }, 0);
 }
+
+/**
+ * Bỏ chọn tất cả dòng trong bảng
+ * Created By hanv 20/01/2026
+ */
 function unSelectedAll() {
   updateInProgress.value = true;
   tableDataClone.body.forEach((item) => {
@@ -262,15 +381,39 @@ function unSelectedAll() {
     updateInProgress.value = false;
   }, 0);
 }
+
+/**
+ * Define các events được emit từ component
+ * - emitActionBtn: Emit action button click events
+ * - selectedIdsChanged: Emit khi danh sách ID được chọn thay đổi
+ * - handleChangeCurrentPage: Emit khi trang hiện tại thay đổi
+ * Created By hanv 20/01/2026
+ */
 const emit = defineEmits([
   "emitActionBtn",
   "selectedIdsChanged",
   "handleChangeCurrentPage",
 ]);
+
+/**
+ * Emit footer button action
+ * @param {String} action - Tên action từ footer button
+ * Created By hanv 20/01/2026
+ */
 function emitBtnFooterAction(action) {
   emit("emitActionBtn", action);
 }
-// Phát ra sự kiện khi bấm nút hành động mỗi hàng trong bảng
+
+/**
+ * Emit button action - Gửi action từ row button lên parent
+ * @param {String} action - Tên action (edit, delete, duplicate, etc.)
+ * @param {Object} shiftUpdated - Dữ liệu shift được cập nhật
+ * @param {Number} indexTbdItem - Index của dòng trong bảng
+ * @param {Number} indexBtnAction - Index của button action
+ * @param {Event} event - Click event (nếu có)
+ * @param {String} sortType - Loại sort (nếu là action sort)
+ * Created By hanv 20/01/2026
+ */
 function handleEmitActionBtn(
   action,
   shiftUpdated,
@@ -290,14 +433,113 @@ function handleEmitActionBtn(
   );
 }
 
-// Debounce cho search input
+/**
+ * Debounce handler cho search input - Delay 500ms trước khi emit
+ * Created By hanv 20/01/2026
+ */
 const handleSearchDebounced = debounce((value) => {
   handleEmitActionBtn("searchByKeyword", null, null, null, value);
 }, 500);
 
+/**
+ * Xử lý input tìm kiếm - Gọi debounce function
+ * @param {Event} event - Input change event
+ * Created By hanv 20/01/2026
+ */
 function handleSearchInput(event) {
   handleSearchDebounced(event.target.value);
 }
+
+/**
+ * Resize column functionality state
+ * Theo dõi: isResizing, columnIndex, startX, startWidth
+ * Created By hanv 20/01/2026
+ */
+const resizing = ref({
+  isResizing: false,
+  columnIndex: null,
+  startX: 0,
+  startWidth: 0,
+});
+
+/**
+ * Bắt đầu resize cột
+ * Lưu vị trí ban đầu, thêm mouse listeners, đổi cursor
+ * @param {Event} event - Mousedown event trên resize handle
+ * @param {Number} indexTbhItems - Index của column header
+ * Created By hanv 20/01/2026
+ */
+function startResize(event, indexTbhItems) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  resizing.value.isResizing = true;
+  resizing.value.columnIndex = indexTbhItems;
+  resizing.value.startX = event.pageX;
+
+  // Lấy width hiện tại của column
+  const th = event.target.closest("th");
+  if (th) {
+    resizing.value.startWidth = th.offsetWidth;
+  }
+
+  document.addEventListener("mousemove", handleResize);
+  document.addEventListener("mouseup", stopResize);
+
+  // Thêm class để thay đổi cursor toàn màn hình
+  document.body.style.cursor = "col-resize";
+  document.body.style.userSelect = "none";
+}
+
+/**
+ * Xử lý resize khi di chuyển chuột
+ * Tính toán width mới và cập nhật header style
+ * @param {Event} event - Mousemove event
+ * Created By hanv 20/01/2026
+ */
+function handleResize(event) {
+  if (!resizing.value.isResizing) return;
+
+  const diff = event.pageX - resizing.value.startX;
+  const newWidth = resizing.value.startWidth + diff;
+
+  // Đặt min width là 80px
+  if (newWidth >= 80) {
+    const header = tableDataClone.header[resizing.value.columnIndex];
+    if (header && header.style) {
+      header.style.width = `${newWidth}px`;
+      header.style.minWidth = `${newWidth}px`;
+      header.style.maxWidth = `${newWidth}px`;
+    }
+  }
+}
+
+/**
+ * Kết thúc resize cột
+ * Xóa mouse listeners, reset cursor
+ * Created By hanv 20/01/2026
+ */
+function stopResize() {
+  resizing.value.isResizing = false;
+  resizing.value.columnIndex = null;
+
+  document.removeEventListener("mousemove", handleResize);
+  document.removeEventListener("mouseup", stopResize);
+
+  // Reset cursor
+  document.body.style.cursor = "";
+  document.body.style.userSelect = "";
+}
+
+/**
+ * Cleanup khi component unmount
+ * Xóa tất cả event listeners
+ * Created By hanv 20/01/2026
+ */
+onUnmounted(() => {
+  document.removeEventListener("mousemove", handleResize);
+  document.removeEventListener("mouseup", stopResize);
+});
 </script>
 
 <template>
@@ -387,16 +629,27 @@ function handleSearchInput(event) {
                       <div style="color: #009b71">
                         {{
                           itemHeader.typeFilter ===
-                          CONSTANTS.BASE_INPUT_TYPE.DATE
-                            ? CONSTANTS.DATE_FILTER_COLUMN_TYPE_TEXT[
-                                itemHeader.filterTypeAfterSaved
+                          CONSTANTS.BASE_INPUT_TYPE.COMBOBOX
+                            ? CONSTANTS.STATUS_SHIFT[
+                                itemHeader.valueFilterTypeAfterSaved
                               ]
-                            : CONSTANTS.FILTER_COLUMN_TYPE_TEXT[
-                                itemHeader.filterTypeAfterSaved
-                              ]
+                            : itemHeader.typeFilter ===
+                                CONSTANTS.BASE_INPUT_TYPE.DATE
+                              ? CONSTANTS.DATE_FILTER_COLUMN_TYPE_TEXT[
+                                  itemHeader.filterTypeAfterSaved
+                                ]
+                              : CONSTANTS.FILTER_COLUMN_TYPE_TEXT[
+                                  itemHeader.filterTypeAfterSaved
+                                ]
                         }}
                       </div>
-                      <span>{{ itemHeader.valueFilterTypeAfterSaved }}</span>
+                      <span
+                        v-if="
+                          itemHeader.typeFilter !==
+                          CONSTANTS.BASE_INPUT_TYPE.COMBOBOX
+                        "
+                        >{{ itemHeader.valueFilterTypeAfterSaved }}</span
+                      >
                     </div>
                     <div
                       class="icon16 pointer icon-close"
@@ -565,129 +818,186 @@ function handleSearchInput(event) {
                                   )
                                 "
                               >
-                                <div class="icon16 filter--default"></div>
+                                <div
+                                  :class="[
+                                    'icon16',
+                                    tableHeadItems.valueFilterTypeAfterSaved ===
+                                      '' ||
+                                    tableHeadItems.valueFilterTypeAfterSaved ===
+                                      null
+                                      ? 'filter--default'
+                                      : 'filter--active',
+                                  ]"
+                                ></div>
                               </div>
                             </div>
                           </div>
                         </div>
-                        <div class="ms-resize"></div>
+                        <div
+                          class="ms-resize"
+                          @mousedown="startResize($event, indexTbhItems)"
+                        ></div>
                       </div>
                     </th>
                     <th class="ms-th widget-title" rowspan="0"></th>
                   </tr>
                 </thead>
                 <tbody class="ms-tbody data">
-                  <tr
-                    v-for="(tableDataItem, indexTbdItem) in tableDataClone.body"
-                    :key="indexTbdItem"
-                    :class="[
-                      'ms-tr',
-                      tableDataItem.row.isSelected ? 'row-selected' : '',
-                    ]"
-                  >
-                    <td
-                      class="ms-td multiple-cell sticky ms-col-td-multiple"
-                      @click.stop="toggleCheckbox(indexTbdItem)"
+                  <!-- Skeleton Loading -->
+                  <template v-if="appStore.isLoading">
+                    <tr
+                      v-for="index in tableDataClone.pagination.pageSize"
+                      :key="`skeleton-${index}`"
+                      class="shimmer-row"
                     >
-                      <label class="ms-checkbox justify-center">
-                        <input
-                          type="checkbox"
-                          :checked="tableDataItem.row.isSelected"
-                          class="ms-checkbox-control checkbox"
-                          @click="toggleCheckbox(indexTbdItem)"
-                        />
-                        <div class="ms-checkbox-wrapper">
-                          <span class="ms-checkbox-container">
-                            <span class="ms-checkbox-inner">
-                              <div class="checkmark mi-checkbox-active"></div>
-                            </span>
-                          </span>
-                        </div>
-                      </label>
-                    </td>
-                    <td
+                      <td
+                        class="ms-td multiple-cell sticky ms-col-td-multiple shimmer-cell"
+                      >
+                        <div class="shimmer-box shimmer-checkbox"></div>
+                      </td>
+                      <td
+                        v-for="(header, idx) in tableDataClone.header"
+                        :key="idx"
+                        class="ms-td shimmer-cell"
+                      >
+                        <div class="shimmer-box"></div>
+                      </td>
+                      <td class="ms-td widget-item sticky shimmer-cell">
+                        <div class="shimmer-box shimmer-actions"></div>
+                      </td>
+                    </tr>
+                  </template>
+
+                  <!-- Dữ liệu bảng -->
+                  <template v-else>
+                    <tr
                       v-for="(
-                        rowItem, indexRowItem
-                      ) in tableDataItem.row.rowItems.filter(
-                        (item) =>
-                          item.columnName !==
-                          CONSTANTS.COLUMN_NAME_SHIFT.ShiftId,
-                      )"
-                      :key="indexRowItem"
-                      class="ms-td ms-col-td level-undefined"
-                      :title="rowItem.columnData"
-                      @click="selectRow(indexTbdItem)"
+                        tableDataItem, indexTbdItem
+                      ) in tableDataClone.body"
+                      :key="indexTbdItem"
+                      :class="[
+                        'ms-tr',
+                        tableDataItem.row.isSelected ? 'row-selected' : '',
+                      ]"
                     >
-                      <div>
-                        <div class="text-left text-overflow">
-                          <span :class="[rowItem.textAlign]">
-                            <span class="text-view">
-                              <div v-if="rowItem.isActive === undefined">
-                                {{
-                                  rowItem.columnData &&
-                                  rowItem.columnData !== ""
-                                    ? [
-                                        CONSTANTS.COLUMN_NAME_SHIFT
-                                          .ShiftBreakingTime,
-                                        CONSTANTS.COLUMN_NAME_SHIFT
-                                          .ShiftWorkingTime,
-                                      ].includes(rowItem.columnName)
-                                      ? formatFixed2Number(rowItem.columnData)
-                                      : rowItem.columnData
-                                    : [
+                      <td
+                        class="ms-td multiple-cell sticky ms-col-td-multiple"
+                        @click.stop="toggleCheckbox(indexTbdItem)"
+                      >
+                        <label class="ms-checkbox justify-center">
+                          <input
+                            type="checkbox"
+                            :checked="tableDataItem.row.isSelected"
+                            class="ms-checkbox-control checkbox"
+                            @click="toggleCheckbox(indexTbdItem)"
+                          />
+                          <div class="ms-checkbox-wrapper">
+                            <span class="ms-checkbox-container">
+                              <span class="ms-checkbox-inner">
+                                <div class="checkmark mi-checkbox-active"></div>
+                              </span>
+                            </span>
+                          </div>
+                        </label>
+                      </td>
+                      <td
+                        v-for="(
+                          rowItem, indexRowItem
+                        ) in tableDataItem.row.rowItems.filter(
+                          (item) =>
+                            item.columnName !==
+                            CONSTANTS.COLUMN_NAME_SHIFT.ShiftId,
+                        )"
+                        :key="indexRowItem"
+                        class="ms-td ms-col-td level-undefined"
+                        :title="rowItem.columnData"
+                        @click="selectRow(indexTbdItem)"
+                      >
+                        <div>
+                          <div class="text-left text-overflow">
+                            <span :class="[rowItem.textAlign]">
+                              <span class="text-view">
+                                <div v-if="rowItem.isActive === undefined">
+                                  {{
+                                    rowItem.columnData &&
+                                    rowItem.columnData !== ""
+                                      ? [
                                           CONSTANTS.COLUMN_NAME_SHIFT
                                             .ShiftBreakingTime,
                                           CONSTANTS.COLUMN_NAME_SHIFT
                                             .ShiftWorkingTime,
                                         ].includes(rowItem.columnName)
-                                      ? "0,00"
-                                      : "-"
-                                }}
-                              </div>
-                              <div
-                                :class="[
-                                  rowItem.isActive ? 'active' : 'inactive',
-                                  'custom-status',
-                                ]"
-                                v-else-if="rowItem.isActive !== undefined"
-                              >
-                                {{ rowItem.columnData }}
-                              </div>
+                                        ? formatFixed2Number(rowItem.columnData)
+                                        : rowItem.columnData
+                                      : [
+                                            CONSTANTS.COLUMN_NAME_SHIFT
+                                              .ShiftBreakingTime,
+                                            CONSTANTS.COLUMN_NAME_SHIFT
+                                              .ShiftWorkingTime,
+                                          ].includes(rowItem.columnName)
+                                        ? "0,00"
+                                        : "-"
+                                  }}
+                                </div>
+                                <div
+                                  :class="[
+                                    rowItem.isActive ? 'active' : 'inactive',
+                                    'custom-status',
+                                  ]"
+                                  v-else-if="rowItem.isActive !== undefined"
+                                >
+                                  {{ rowItem.columnData }}
+                                </div>
+                              </span>
                             </span>
-                          </span>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td class="ms-td widget-item sticky">
-                      <div class="widget-container">
-                        <BaseBtn
-                          v-for="(
-                            btnActionItem, indexBtnAction
-                          ) in tableDataItem.row.btnActions"
-                          :key="indexBtnAction"
-                          :icon="btnActionItem.icon"
-                          :type="btnActionItem.type"
-                          :isHideBorder="btnActionItem.isHideBorder"
-                          :isBtnActionTable="btnActionItem.isBtnActionTable"
-                          :tooltipText="btnActionItem.tooltipText"
-                          :isOpenSelectBox="btnActionItem.isOpenSelectBox"
-                          @click="
-                            handleEmitActionBtn(
-                              btnActionItem.action,
-                              btnActionItem.shiftUpdated,
-                              indexTbdItem,
-                              indexBtnAction,
-                              $event,
-                            )
-                          "
-                          ref="buttonRowRef"
-                        />
-                      </div>
-                    </td>
-                  </tr>
+                      </td>
+                      <td class="ms-td widget-item sticky">
+                        <div class="widget-container">
+                          <BaseBtn
+                            v-for="(
+                              btnActionItem, indexBtnAction
+                            ) in tableDataItem.row.btnActions"
+                            :key="indexBtnAction"
+                            :icon="btnActionItem.icon"
+                            :type="btnActionItem.type"
+                            :isHideBorder="btnActionItem.isHideBorder"
+                            :isBtnActionTable="btnActionItem.isBtnActionTable"
+                            :tooltipText="btnActionItem.tooltipText"
+                            :isOpenSelectBox="btnActionItem.isOpenSelectBox"
+                            @click="
+                              handleEmitActionBtn(
+                                btnActionItem.action,
+                                btnActionItem.shiftUpdated,
+                                indexTbdItem,
+                                indexBtnAction,
+                                $event,
+                              )
+                            "
+                            ref="buttonRowRef"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  </template>
                 </tbody>
               </table>
             </div>
+          </div>
+
+          <div
+            v-if="
+              tableDataClone.body.length === 0 && appStore.isLoading === false
+            "
+            class="grid-no-data"
+          >
+            <img
+              src="../../assets/icon/pas.bg_report_nodata_new-488b93b4.svg"
+              alt=""
+              srcset=""
+            />
+            <div class="empty-des">Không có dữ liệu</div>
           </div>
           <div class="ms-pagination flex-row table-paging">
             <div class="flex total-count">
@@ -829,7 +1139,13 @@ function handleSearchInput(event) {
         </div>
         <div class="filter-container">
           <div class="control-gap-item view-fitler-text">
-            <div class="column-filter flex">
+            <div
+              class="column-filter flex"
+              v-if="
+                props.tableData.styleColumnValueModal.typeInput !==
+                CONSTANTS.BASE_INPUT_TYPE.COMBOBOX
+              "
+            >
               <div class="filter-operator">
                 <BaseCombobox
                   :tooltipText="filterTooltipText"
@@ -1115,6 +1431,13 @@ function handleSearchInput(event) {
   mask-position: -544px 0px;
   background-color: #4b5563;
   display: none;
+}
+.icon16.filter--active {
+  mask-image: url("/src/assets/icon/pas.Icon Warehouse-e29a964d.svg");
+  mask-repeat: no-repeat;
+  mask-position: -720px 0px;
+  background-color: #4b5563;
+  display: block;
 }
 .ms-col-th.is-text-column:hover .icon16.filter--default {
   display: block;
@@ -1442,5 +1765,71 @@ tbody .ms-tr {
   color: #f06666;
   cursor: pointer;
   white-space: nowrap;
+}
+
+/* Shimmer Loading Styles */
+.shimmer-row {
+  height: 48px;
+}
+
+.shimmer-cell {
+  padding: 8px 12px !important;
+}
+
+.shimmer-box {
+  height: 16px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-box::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.shimmer-checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+}
+
+.shimmer-actions {
+  width: 60px;
+  margin: 0 auto;
+}
+.grid-no-data {
+  position: absolute;
+  text-align: center;
+  font-style: normal;
+  color: #111827;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, 100%);
+}
+.grid-no-data .img-bg {
+  background: transparent;
+  border: none;
 }
 </style>

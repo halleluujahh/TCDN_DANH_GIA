@@ -4,6 +4,13 @@ import { useAppStore } from "../../stores/appStore";
 import { ref } from "vue";
 
 /**
+ * BaseSidebar Component - Sidebar menu với nested submenu hỗ trợ popup
+ * Hỗ trợ menu items với submenu, popup menu ngoài sidebar
+ * Tự động quản lý trạng thái mở/đóng menu và positioning popup
+ * Created By hanv 20/01/2026
+ */
+
+/**
  * @typedef {Object} MenuItem
  * @property {{ url: string, position: { x: number, y: number } }} icon
  * @property {string} title
@@ -69,6 +76,10 @@ import { ref } from "vue";
  * }[]} popupMenuItemsList
  */
 const props = defineProps({
+  /**
+   * Danh sách menu items
+   * @type {Array<MenuItem>}
+   */
   menuItems: {
     type: Array,
     required: true,
@@ -89,6 +100,10 @@ const currentItemChoosed = ref({
   route: null,
 });
 
+/**
+ * Deactivate tất cả menu items và đóng submenu/popup
+ * Created By hanv 20/01/2026
+ */
 function unactiveAllMenuItems() {
   // Đóng tất cả submenu item khác
   menuItemsClone.value.forEach((item, i) => {
@@ -101,6 +116,12 @@ function unactiveAllMenuItems() {
     }
   });
 }
+
+/**
+ * Deactivate tất cả menu items trừ item tại index hiện tại
+ * @param {Number} index - Index của menu item cần giữ active
+ * Created By hanv 20/01/2026
+ */
 function unactiveAllMenuItemsExceptCurrent(index) {
   // Đóng tất cả menu item khác trừ cái submenu hiện tại
   menuItemsClone.value.forEach((item, i) => {
@@ -112,6 +133,13 @@ function unactiveAllMenuItemsExceptCurrent(index) {
     }
   });
 }
+
+/**
+ * Đóng popup menu trước đó nếu có, cập nhật oldIndex và oldSubIndex
+ * @param {Number} index - Index của menu item hiện tại
+ * @param {Number} subIndex - Index của submenu item (default: -1)
+ * Created By hanv 20/01/2026
+ */
 function closePopupBefore(index, subIndex = -1) {
   // Đóng popup menu trước nếu có
   if (oldIndex.value >= 1 && oldIndex.value !== index) {
@@ -139,6 +167,12 @@ function closePopupBefore(index, subIndex = -1) {
   oldIndex.value = index;
   oldSubIndex.value = subIndex;
 }
+
+/**
+ * Toggle submenu mở/đóng của menu item
+ * @param {Number} index - Index của menu item
+ * Created By hanv 20/01/2026
+ */
 function toggleSubMenuItem(index) {
   // Nếu có popupMenuOutside thì không làm gì cả
   if (menuItemsClone.value[index].popupMenuOutside !== undefined) {

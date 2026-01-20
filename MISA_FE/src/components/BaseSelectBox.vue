@@ -1,14 +1,41 @@
 <script setup>
+/**
+ * BaseSelectBox Component - Menu select box tái sử dụng
+ * Hiển thị danh sách menu items với icon, text và action
+ * Hỗ trợ phân tách menu items bằng border
+ * Created By hanv 20/01/2026
+ */
+
 const props = defineProps({
+  /**
+   * Style object cho wrapper
+   * @type {Object}
+   */
   style: {
     type: Object,
     default: () => {},
   },
+  /**
+   * Danh sách menu items
+   * Mỗi item có: action, shiftUpdated, idxTbdItem, sortType, text, icon, isHasMenuBorder
+   * @type {Array}
+   */
   items: {
     type: Array,
     default: () => [],
   },
 });
+
+/**
+ * Emit action event khi click vào menu item
+ * @event action
+ * @param {String} action - Tên action
+ * @param {Object} shiftUpdated - Dữ liệu shift được cập nhật (nếu có)
+ * @param {Number} idxTbdItem - Index của item trong bảng
+ * @param {Number|null} indexBtnAction - Index của button action
+ * @param {Event|null} event - Click event
+ * @param {String} sortType - Loại sort (nếu có)
+ */
 const emit = defineEmits(["action"]);
 </script>
 

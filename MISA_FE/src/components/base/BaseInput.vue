@@ -11,86 +11,178 @@ import {
 import { onMounted, watch } from "vue";
 import BaseCombobox from "./BaseCombobox.vue";
 
+/**
+ * BaseInput Component - Input field tái sử dụng hỗ trợ nhiều kiểu
+ * Hỗ trợ: text, float-num, textarea, checkbox, time-picker, date
+ * Tự động format time/date theo format chuẩn của ứng dụng
+ * Created By hanv 20/01/2026
+ */
+
 const models = defineModel({
   type: [String, Number],
   default: "",
 });
 
 const props = defineProps({
+  /**
+   * Error message hiển thị
+   * @type {String}
+   */
   errorMessage: {
     type: String,
     default: "",
   },
+  /**
+   * Giá trị có phải số âm không
+   * @type {Boolean}
+   */
   isValueNegative: {
     type: Boolean,
     default: false,
   },
+  /**
+   * Placeholder text
+   * @type {String}
+   */
   placeholder: {
     type: String,
     default: "",
   },
+  /**
+   * Autocomplete attribute của input
+   * @type {String}
+   */
   autoComplete: {
     type: String,
     default: "off",
   },
+  /**
+   * Độ dài tối đa của input
+   * @type {Number}
+   */
   maxLength: {
     type: Number,
     default: null,
   },
-  // search, ic-time
+  /**
+   * Icon hiển thị (search, ic-time)
+   * @type {String}
+   */
   icon: {
     type: String,
     default: "",
   },
-  // icon size: icon16, icon20, icon24
+  /**
+   * Kích thước icon (icon16, icon20, icon24)
+   * @type {String}
+   */
   iconSize: {
     type: String,
     default: "icon16",
   },
-  // text, float-num, textarea, checkbox, time-picker, date
+  /**
+   * Kiểu input (text, float-num, textarea, checkbox, time-picker, date)
+   * @type {String}
+   */
   type: {
     type: String,
     default: "text",
   },
+  /**
+   * Input có bị disable không
+   * @type {Boolean}
+   */
   isDisabled: {
     type: Boolean,
     default: false,
   },
+  /**
+   * Số dòng của textarea
+   * @type {Number}
+   */
   rows: {
     type: Number,
     default: 3,
   },
+  /**
+   * Cursor là pointer
+   * @type {Boolean}
+   */
   isPointer: {
     type: Boolean,
     default: true,
   },
+  /**
+   * Danh sách checkbox items
+   * @type {Array}
+   */
   checkItems: {
     type: Array,
     default: () => [],
   },
+  /**
+   * Callback action function
+   * @type {Function}
+   */
   action: {
     type: Function,
     default: null,
   },
+  /**
+   * Index của modal input fields group
+   * @type {Number}
+   */
   indexModalInputFields: {
     type: Number,
     default: null,
   },
+  /**
+   * Index của field item
+   * @type {Number}
+   */
   indexFieldItems: {
     type: Number,
     default: null,
   },
 });
 
+/**
+ * Xử lý sự kiện blur trên input
+ * Validate và format giá trị theo kiểu input
+ * @param {String} event - Loại event (input hoặc blur)
+ * @param {Number} indexFieldItems - Index của field item
+ * @param {Number} indexModalInputFields - Index của modal input fields
+ * Created By hanv 20/01/2026
+ */
+function handleBlur(event, indexFieldItems, indexModalInputFields) {
+    emit("blur-action", indexFieldItems, indexModalInputFields);
+    handleValidAndCalculateTime(event);
+}
+
+/**
+ * Validate và format time value
+ * Format HH:MM tự động khi input hoặc blur
+ * @param {String} event - Loại event (input hoặc blur)
+ * Created By hanv 20/01/2026
+ */
 function handleValidAndCalculateTime(event) {
   if (event === "input") {
     models.value = formatTime(models.value);
   } else if (event === "blur") {
     models.value = formatTimeAlwaysValid(models.value);
   }
-  props.action();
+
+  if (typeof props.action === "function") {
+    props.action();
+  }
 }
 
+/**
+ * Validate và format date value
+ * Format dd/mm/yyyy tự động khi input hoặc blur
+ * @param {String} event - Loại event (input hoặc blur)
+ * Created By hanv 20/01/2026
+ */
 function handleValidAndCalculateDate(event) {
   if (event === "input") {
     models.value = formatDateInput(models.value);
@@ -98,6 +190,12 @@ function handleValidAndCalculateDate(event) {
     models.value = formatDateInputAlwaysValid(models.value);
   }
 }
+
+/**
+ * Emit blur-action event
+ * @event blur-action
+ */
+const emit = defineEmits(["blur-action"]);
 
 onMounted(() => {
   if (
@@ -160,6 +258,7 @@ onMounted(() => {
         :placeholder="props.placeholder"
         class="ms-input-item flex w-100"
         v-model="models"
+        @blur="emit('blur-action', indexFieldItems, indexModalInputFields)"
       />
     </div>
     <!-- Input type time-picker -->
@@ -173,7 +272,7 @@ onMounted(() => {
         class="ms-input--timepicker flex"
         v-model="models"
         @input="handleValidAndCalculateTime('input')"
-        @blur="handleValidAndCalculateTime('blur')"
+        @blur="handleBlur('blur', indexFieldItems, indexModalInputFields)"
       />
       <div
         :class="[props.iconSize, props.icon, props.icon ? '' : 'd-none']"

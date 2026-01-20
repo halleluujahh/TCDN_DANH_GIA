@@ -8,15 +8,38 @@ import { CONSTANTS } from "../../commons/constants";
 import { cloneDeep } from "lodash";
 import BaseModalError from "./BaseModalError.vue";
 
+/**
+ * BaseModal Component - Modal dialog draggable với form fields
+ * Hỗ trợ: drag to move, form validation, keyboard shortcuts, error modal
+ * Hỗ trợ shortcut: Ctrl+S (save), Ctrl+Shift+S (saveAdd), ESC (close)
+ * Created By hanv 20/01/2026
+ */
+
+/**
+ * Modal reference cho việc drag and positioning
+ * @type {HTMLElement}
+ */
 const modalRef = ref(null);
 
-// Drag variables
+/**
+ * Drag state variables
+ * isDragging: Tracking drag state
+ * shiftX, shiftY: Offset từ vị trí click đến edge của modal
+ * target: Reference tới modal element đang drag
+ * Created By hanv 20/01/2026
+ */
 let isDragging = false;
 let shiftX = 0;
 let shiftY = 0;
 let target = null;
 
-// Drag functions
+/**
+ * Bắt đầu drag modal
+ * Lưu vị trí ban đầu của chuột và offset modal
+ * Thêm mousemove và mouseup listeners
+ * @param {MouseEvent} e - Mouse down event từ modal header
+ * Created By hanv 20/01/2026
+ */
 function startDrag(e) {
   target = modalRef.value;
   isDragging = true;
@@ -29,7 +52,12 @@ function startDrag(e) {
   document.addEventListener("mouseup", stopDrag);
 }
 
-// Move modal
+/**
+ * Di chuyển modal khi chuột được drag
+ * Cập nhật vị trí modal dựa trên mouse position
+ * @param {MouseEvent} e - Mouse move event
+ * Created By hanv 20/01/2026
+ */
 function onDrag(e) {
   if (!isDragging) return;
 
@@ -38,40 +66,85 @@ function onDrag(e) {
   target.style.top = e.clientY - shiftY + "px";
 }
 
-// Stop dragging
+/**
+ * Kết thúc drag modal
+ * Xóa event listeners cho mousemove và mouseup
+ * Created By hanv 20/01/2026
+ */
 function stopDrag() {
   isDragging = false;
   document.removeEventListener("mousemove", onDrag);
   document.removeEventListener("mouseup", stopDrag);
 }
-// Props
+
+/**
+ * Props cho BaseModal component
+ * Created By hanv 20/01/2026
+ */
 const props = defineProps({
+  /**
+   * Tiêu đề của modal
+   * @type {String}
+   */
   modalTitle: {
     type: String,
     default: "",
   },
+  /**
+   * Danh sách input fields cho form
+   * Mỗi group có formItems array
+   * @type {Array}
+   */
   modalInputFields: {
     type: Array,
     default: () => [],
   },
+  /**
+   * Danh sách buttons ở footer
+   * Mỗi button có: text, type, action, tooltipText
+   * @type {Array}
+   */
   buttonFooter: {
     type: Array,
     default: () => [],
   },
+  /**
+   * Trạng thái hiển thị modal
+   * @type {Boolean}
+   */
   isShowModal: {
     type: Boolean,
     default: false,
   },
+  /**
+   * ID của item đang chỉnh sửa (null nếu add new)
+   * @type {String|Number|null}
+   */
   idEdited: {
     type: [String, Number, null],
     default: null,
   },
+  /**
+   * Configuration cho error modal
+   * Chứa: title, message, iconTitle, iconTooltip, buttonFooterModalError
+   * @type {Object}
+   */
   errorModal: {
     type: Object,
     default: () => ({}),
   },
 });
+
+/**
+ * Clone buttonFooter để track changes
+ * Created By hanv 20/01/2026
+ */
 const buttonFooterClone = ref(cloneDeep(props.buttonFooter));
+
+/**
+ * Watch buttonFooter prop để cập nhật clone
+ * Created By hanv 20/01/2026
+ */
 watch(
   () => props.buttonFooter,
   (newVal) => {
@@ -79,17 +152,40 @@ watch(
   },
   { deep: true, immediate: true },
 );
-// Emits
-const emit = defineEmits(["closeModal", "action"]);
-// Emit functions
+
+/**
+ * Define các events được emit từ component
+ * - closeModal: Emit khi đóng modal
+ * - action: Emit khi action button được click
+ * - blur-action: Emit khi blur trên input field
+ * Created By hanv 20/01/2026
+ */
+const emit = defineEmits(["closeModal", "action", "blur-action"]);
+
+/**
+ * Emit action từ footer button
+ * @param {String} action - Tên action cần thực hiện
+ * Created By hanv 20/01/2026
+ */
 function emitBtnFooterAction(action) {
   emit("action", action);
 }
+
+/**
+ * Emit close modal event
+ * Created By hanv 20/01/2026
+ */
 function closeModal() {
   emit("closeModal");
 }
 
-// Shortcuts
+/**
+ * Đăng ký keyboard shortcuts
+ * - Ctrl+Shift+S: Save and add
+ * - Ctrl+S: Save
+ * - ESC: Close modal
+ * Created By hanv 20/01/2026
+ */
 useShortCut("ctrl+shift+s", () => {
   console.log("ctr shift s ");
 });
@@ -231,6 +327,7 @@ useShortCut("esc", () => {
                     :indexModalInputFields="indexModalInputFields"
                     :indexFieldItems="indexFieldItems"
                     v-model="fieldItems.value"
+                    @blur-action="emit('blur-action', indexFieldItems, indexModalInputFields)"
                   />
                   <BaseInput
                     v-else-if="

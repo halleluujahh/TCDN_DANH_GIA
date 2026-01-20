@@ -2,9 +2,37 @@
 import { ref } from "vue";
 import BaseToast from "./base/BaseToast.vue";
 
+/**
+ * ToastContainer Component - Container quản lý tất cả toast notifications
+ * Hiển thị multiple toasts cùng lúc
+ * Hỗ trợ positioning: top và bottom
+ * Auto remove toast khi close event được trigger
+ * Created By hanv 20/01/2026
+ */
+
+/**
+ * Danh sách toasts hiện đang hiển thị
+ * Mỗi toast có: id, message, type, duration, position
+ * @type {Array<Object>}
+ */
 const toasts = ref([]);
+
+/**
+ * Counter để generate unique toast IDs
+ * @type {Number}
+ */
 let toastId = 0;
 
+/**
+ * Thêm toast mới vào container
+ * Generate unique ID và thêm vào danh sách toasts
+ * @param {Object} options - Toast options
+ * @param {String} options.message - Toast message content (required)
+ * @param {String} options.type - Toast type: success, error, warning, info
+ * @param {Number} options.duration - Auto-dismiss time in milliseconds
+ * @param {String} options.position - Position: top or bottom
+ * Created By hanv 20/01/2026
+ */
 function addToast(options) {
   const id = toastId++;
   toasts.value.push({
@@ -13,6 +41,12 @@ function addToast(options) {
   });
 }
 
+/**
+ * Xóa toast khỏi container
+ * Tìm toast theo ID và xóa khỏi danh sách
+ * @param {Number} id - Toast ID cần xóa
+ * Created By hanv 20/01/2026
+ */
 function removeToast(id) {
   const index = toasts.value.findIndex((toast) => toast.id === id);
   if (index > -1) {
@@ -20,7 +54,11 @@ function removeToast(id) {
   }
 }
 
-// Expose methods to be called from parent
+/**
+ * Expose methods cho parent component
+ * Cho phép gọi addToast từ parent qua template ref
+ * Created By hanv 20/01/2026
+ */
 defineExpose({
   addToast,
 });

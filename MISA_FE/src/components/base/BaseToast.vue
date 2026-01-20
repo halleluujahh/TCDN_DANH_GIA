@@ -1,21 +1,51 @@
 <script setup>
 import { ref, onMounted, watch } from "vue";
 
+/**
+ * BaseToast Component - Toast notification với auto dismiss
+ * Hỗ trợ: success, error, warning, info types
+ * Auto dismiss sau duration hoặc click close button
+ * Hiển thị animation khi appear/disappear
+ * Created By hanv 20/01/2026
+ */
+
+/**
+ * Props cho BaseToast component
+ * Created By hanv 20/01/2026
+ */
 const props = defineProps({
+  /**
+   * Nội dung message hiển thị (required)
+   * @type {String}
+   */
   message: {
     type: String,
     required: true,
   },
+  /**
+   * Kiểu toast: success, error, warning, info
+   * Quy định màu sắc và icon hiển thị
+   * @type {String}
+   */
   type: {
     type: String,
-    default: "success", // success, error, warning, info
+    default: "success",
     validator: (value) =>
       ["success", "error", "warning", "info"].includes(value),
   },
+  /**
+   * Thời gian hiển thị tính bằng milliseconds (ms)
+   * Nếu duration = 0 thì không auto dismiss
+   * @type {Number}
+   */
   duration: {
     type: Number,
-    default: 3000, // 3 seconds
+    default: 3000,
   },
+  /**
+   * Vị trí hiển thị: top hoặc bottom
+   * @type {String}
+   */
   position: {
     type: String,
     default: "top",
@@ -23,10 +53,28 @@ const props = defineProps({
   },
 });
 
+/**
+ * Emit close event khi toast dismissed
+ * Created By hanv 20/01/2026
+ */
 const emit = defineEmits(["close"]);
+
+/**
+ * Trạng thái hiển thị của toast
+ * @type {Boolean}
+ */
 const isVisible = ref(false);
+
+/**
+ * Timeout ID để track auto dismiss timer
+ * Created By hanv 20/01/2026
+ */
 let timer = null;
 
+/**
+ * Mount hook - Hiển thị toast và set auto dismiss timer
+ * Created By hanv 20/01/2026
+ */
 onMounted(() => {
   isVisible.value = true;
   if (props.duration > 0) {
@@ -36,13 +84,24 @@ onMounted(() => {
   }
 });
 
+/**
+ * Đóng toast notification
+ * Ẩn toast với animation, sau đó emit close event
+ * Delay 150ms để đợi animation xong
+ * Created By hanv 20/01/2026
+ */
 function close() {
   isVisible.value = false;
   setTimeout(() => {
     emit("close");
-  }, 150); // Wait for animation
+  }, 150);
 }
 
+/**
+ * Xử lý click trên toast
+ * Clear timer và đóng toast
+ * Created By hanv 20/01/2026
+ */
 function handleClick() {
   if (timer) {
     clearTimeout(timer);
@@ -50,6 +109,11 @@ function handleClick() {
   close();
 }
 
+/**
+ * Watch message prop - Reset timer khi message thay đổi
+ * Nếu duration > 0 thì tắt timer cũ và set timer mới
+ * Created By hanv 20/01/2026
+ */
 watch(
   () => props.message,
   () => {

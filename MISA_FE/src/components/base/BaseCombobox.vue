@@ -3,27 +3,54 @@ import { onMounted, onUnmounted, ref, Transition } from "vue";
 import { CONSTANTS } from "../../commons/constants";
 import { Enums } from "../../commons/enums";
 
+/**
+ * BaseCombobox Component - Dropdown/Combobox tái sử dụng
+ * Hỗ trợ filter theo date, text, và hiển thị status
+ * Tự động tính toán vị trí dropdown để tránh tràn màn hình
+ * Created By hanv 20/01/2026
+ */
+
 const modelValue = defineModel({
   type: Number,
   required: true,
 });
 const props = defineProps({
+  /**
+   * Tooltip text hiển thị khi hover
+   * @type {String}
+   */
   tooltipText: {
     type: String,
     default: "",
   },
+  /**
+   * Text hiển thị trên combobox
+   * @type {String}
+   */
   textDisplay: {
     type: String,
     default: "",
   },
+  /**
+   * Danh sách items trong dropdown
+   * @type {Array}
+   */
   comboboxItems: {
     type: Array,
     default: () => [],
   },
+  /**
+   * Hiển thị status shift trong dropdown
+   * @type {Boolean}
+   */
   isDisplayStatus: {
     type: Boolean,
     default: false,
   },
+  /**
+   * Kiểu filter (date hoặc text)
+   * @type {Number}
+   */
   typeFilter: {
     type: Number,
     default: null,
@@ -36,6 +63,12 @@ const styleComboboxItems = ref({
   minWidth: "80px",
   maxWidth: "80px",
 });
+
+/**
+ * Mở/đóng dropdown và tính toán vị trí tránh tràn màn hình
+ * @param {Event} e - Click event
+ * Created By hanv 20/01/2026
+ */
 function openCombobox(e) {
   if (!e?.currentTarget) return;
 
@@ -66,6 +99,12 @@ function openCombobox(e) {
     maxWidth: `${rect.width}px`,
   };
 }
+
+/**
+ * Đóng dropdown khi click bên ngoài
+ * @param {Event} event - Click event
+ * Created By hanv 20/01/2026
+ */
 function onClickOutside(event) {
   const comboboxElement = event.target.closest(".ms-combobox");
   const dropdownElement = event.target.closest(".combo-dropdown-panel");
@@ -74,17 +113,31 @@ function onClickOutside(event) {
     isOpenCombobox.value = false;
   }
 }
+
 onMounted(() => {
   document.addEventListener("click", onClickOutside);
 });
 onUnmounted(() => {
   document.removeEventListener("click", onClickOutside);
 });
+
+/**
+ * Xử lý thay đổi giá trị combobox
+ * @param {Number} value - Giá trị được chọn
+ * Created By hanv 20/01/2026
+ */
 function handleChange(value) {
   modelValue.value = value;
   isOpenCombobox.value = false;
 }
 
+/**
+ * Lấy text hiển thị cho item dựa vào kiểu filter
+ * Dịch status shift, filter date/text sang text hiển thị
+ * @param {Object} item - Item object
+ * @returns {String} Text hiển thị
+ * Created By hanv 20/01/2026
+ */
 function getItemDisplayText(item) {
   // Hiển thị status shift
   if (props.isDisplayStatus) {

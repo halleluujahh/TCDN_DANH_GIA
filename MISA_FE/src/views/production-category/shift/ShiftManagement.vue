@@ -1,4 +1,13 @@
 <script setup>
+/**
+ * ShiftManagement Component - Trang quản lý Ca làm việc
+ * Cung cấp các chức năng CRUD (Create, Read, Update, Delete) đầy đủ cho ca làm việc
+ * Tính toán tự động thời gian làm việc và thời gian nghỉ giữa ca
+ * Hỗ trợ tìm kiếm, lọc, sắp xếp, phân trang dữ liệu
+ * Xác thực dữ liệu nghiệp vụ phức tạp (thời gian trùng lặp, khoảng thời gian hợp lệ)
+ * Created By hanv 20/01/2026
+ */
+
 import BasePageHeader from "@/components/base/BasePageHeader.vue";
 import BaseBtn from "../../../components/base/BaseBtn.vue";
 import BaseTable from "../../../components/base/BaseTable.vue";
@@ -14,10 +23,24 @@ import ShiftApi from "../../../api/modules/ShiftApi";
 import { Enums } from "../../../commons/enums";
 import { clone } from "lodash";
 import { useToast } from "../../../composables/useToast";
+import { useAppStore } from "../../../stores/appStore";
+import { useFormValidator } from "../../../composables/useFormValidator";
+import { isEmpty, isEqual, isTimeInRange } from "../../../utils/validation";
 
 const toast = useToast();
+const appStore = useAppStore();
+const { validateModalForm, validateNotEqual, validateTimeInRange } = useFormValidator();
 
-// Dữ liệu bảng ca làm việc
+/**
+ * Cấu hình và dữ liệu bảng ca làm việc
+ * Chứa header (cột), body (dòng), phân trang, trạng thái modal lọc/sắp xếp
+ * @type {Object} propsTable
+ * @property {Array} tableData.header - Danh sách cột bảng với cấu hình lọc, sắp xếp
+ * @property {Array} tableData.body - Danh sách dòng dữ liệu ca làm việc
+ * @property {Object} tableData.pagination - Cấu hình phân trang (pageSize, currentPage, totalCount)
+ * @property {Array} tableData.idsSelected - Danh sách ID được chọn
+ * Created By hanv 20/01/2026
+ */
 const propsTable = ref({
   tableData: {
     header: [
@@ -348,8 +371,8 @@ const propsTable = ref({
     },
 
     styleColumnValueModal: {
-      left: "0px",
-      top: "0px",
+      left: "calc(50% - 225px)",
+      top: "calc(50% - 150px)",
       right: "unset",
       bottom: "unset",
       items: [],
@@ -362,7 +385,18 @@ const propsTable = ref({
   },
 });
 
-// Modal ca làm việc
+/**
+ * Cấu hình modal thêm/sửa ca làm việc
+ * Quản lý dữ liệu form, trạng thái, lỗi và button footer
+ * @type {Object} propsModal
+ * @property {number} idEdited - ID ca làm việc đang chỉnh sửa (null nếu thêm mới)
+ * @property {Object} shiftUpdated - Dữ liệu ca làm việc hiện tại
+ * @property {Array} modalInputFields - Danh sách nhóm form fields với validation
+ * @property {Array} buttonFooter - Cấu hình button footer (Lưu, Hủy, etc)
+ * @property {boolean} isShowModal - Trạng thái modal (mở/đóng)
+ * @property {Object} errorModal - Thông tin modal lỗi hiển thị
+ * Created By hanv 20/01/2026
+ */
 const propsModal = ref({
   idEdited: null,
   shiftUpdated: null,
@@ -528,7 +562,16 @@ const propsModal = ref({
     ],
   },
 });
-// Modal xác nhận xóa ca làm việc
+
+/**
+ * Modal xác nhận xóa ca làm việc
+ * Hiển thị thông báo và xác nhận trước khi xóa dữ liệu
+ * @type {Object} deleteConfirmModal
+ * @property {string} title - Tiêu đề modal "Xóa Ca làm việc!"
+ * @property {string} message - Nội dung cảnh báo (động dựa trên số lượng)
+ * @property {Array} buttonFooterModalError - Button footer (Hủy/Xóa)
+ * Created By hanv 20/01/2026
+ */
 const deleteConfirmModal = ref({
   title: "Xóa Ca làm việc!",
   iconTitle: "danger",
@@ -548,12 +591,31 @@ const deleteConfirmModal = ref({
   ],
 });
 
+/**
+ * Cấu hình filter/tìm kiếm cho bảng
+ * Quản lý từ khóa tìm kiếm và các điều kiện lọc cột
+ * @type {Object} filterRef
+ * @property {string} SearchKeyword - Từ khóa tìm kiếm toàn văn
+ * @property {Array} FilterByShiftColumn - Danh sách lọc theo cột (Name, Value, FilterType)
+ * Created By hanv 20/01/2026
+ */
 const filterRef = ref({
   SearchKeyword: "",
   FilterByShiftColumn: [],
 });
 
-// Tham chiếu lưu trữ thời gian để tính toán
+/**
+ * Tham chiếu lưu trữ giá trị thời gian tạm để tính toán thời gian làm việc
+ * Được cập nhật khi người dùng nhập thời gian vào modal
+ * @type {Object} timeRef
+ * @property {string} shiftBeginTime - Giờ vào ca (HH:mm)
+ * @property {string} shiftEndTime - Giờ hết ca (HH:mm)
+ * @property {string} shiftBeginBreakTime - Giờ bắt đầu nghỉ giữa ca (HH:mm)
+ * @property {string} shiftEndBreakTime - Giờ kết thúc nghỉ giữa ca (HH:mm)
+ * @property {string} shiftBreakingTime - Tổng thời gian nghỉ (định dạng giờ,phút)
+ * @property {string} shiftWorkingTime - Tổng thời gian làm việc (định dạng giờ,phút)
+ * Created By hanv 20/01/2026
+ */
 const timeRef = {
   shiftBeginTime: null,
   shiftEndTime: null,
@@ -562,7 +624,12 @@ const timeRef = {
   shiftBreakingTime: null,
   shiftWorkingTime: null,
 };
-// Hàm hiển thị toast
+
+/**
+ * Hiển thị toast notification
+ * @param {string} message - Nội dung thông báo
+ * @param {string} status - Loại thông báo: success, error, info, warning
+ */
 function showToast(message, status) {
   switch (status) {
     case "success":
@@ -591,7 +658,11 @@ function showToast(message, status) {
       break;
   }
 }
-// Hàm tính toán thời gian làm việc và thời gian nghỉ giữa ca
+
+/**
+ * Tính toán thời gian làm việc và thời gian nghỉ giữa ca
+ * Cập nhật giá trị vào timeRef và các trường tương ứng trong modal
+ */
 function calculateTimeToHours() {
   // Lấy giá trị thời gian từ các trường trong modal
   propsModal.value.modalInputFields.forEach((group) => {
@@ -666,7 +737,13 @@ function calculateTimeToHours() {
     });
   });
 }
-// Hàm xử lý thay đổi trạng thái radio button
+
+/**
+ * Xử lý thay đổi trạng thái radio button (Active/Inactive)
+ * @param {number} indexCheckbox - Index của checkbox được chọn
+ * @param {number} indexModalInputFields - Index của nhóm input fields
+ * @param {number} indexFieldItems - Index của field item
+ */
 function changeStatus(indexCheckbox, indexModalInputFields, indexFieldItems) {
   // Cập nhật trạng thái radio button
   propsModal.value.modalInputFields[indexModalInputFields].formItems[
@@ -680,7 +757,12 @@ function changeStatus(indexCheckbox, indexModalInputFields, indexFieldItems) {
     }
   });
 }
-// Hàm hiển thị lỗi từ API lên modal
+
+/**
+ * Xử lý và hiển thị lỗi từ API response
+ * Map lỗi từ API vào các field tương ứng trong modal và hiển thị error modal
+ * @param {Object} error - Error response từ API
+ */
 function errorDisplayHandler(error) {
   // Hiển thị lỗi validation từ API lên modal
   propsModal.value.modalInputFields.forEach((group) => {
@@ -702,7 +784,13 @@ function errorDisplayHandler(error) {
   propsModal.value.errorModal.message =
     error.data.errors[CONSTANTS.ERROR_RESPONSE.ErrorMessage];
 }
-// Hàm lấy dữ liệu từ modal
+
+/**
+ * Lấy dữ liệu từ modal form và format theo yêu cầu API
+ * Xử lý các trường đặc biệt: ShiftStatus, ShiftWorkingTime, ShiftBreakingTime
+ * @param {string} action - Loại action: 'add' hoặc 'update'
+ * @returns {Object} Form data đã được format
+ */
 function getDataFromModal(action) {
   let formData = {};
   // Lấy dữ liệu từ modal
@@ -762,110 +850,161 @@ function getDataFromModal(action) {
   });
   return formData;
 }
-// Kiểm tra dữ liệu hợp lệ trong modal
-function validationShiftModal() {
-  let isValid = true;
 
-  // Kiểm tra các trường tính hợp lệ:
-  // - Mã ca không được để trống.
-  // - Tên ca không được để trống.
-  // - Giờ vào ca không được để trống.
-  // - Giờ hết ca không được để trống.
-  // - Giờ hết ca không được bằng giờ vào ca.
-  // - Kết thúc nghỉ giữa ca không được bằng Bắt đầu nghỉ giữa ca.
-  // - Thời gian bắt đầu nghỉ giữa ca phải nằm trong khoảng thời
-  // gian tính từ giờ vào ca đến giờ hết ca.
-  // Vui lòng kiểm tra lại.
-  // - Thời gian kết thúc nghỉ giữa ca phải nằm trong khoảng thời
-  // gian tính từ giờ vào ca đến giờ hết ca.
-  // Vui lòng kiểm tra lại.
-  propsModal.value.modalInputFields.forEach((group) => {
-    if (!isValid) return;
-    group.formItems.forEach((item) => {
-      if (item.isRequired) {
-        if (
-          item.value === null ||
-          item.value === "" ||
-          (typeof item.value === "string" && item.value.trim() === "")
-        ) {
-          propsModal.value.errorModal.message = `${item.label} không được để trống.`;
-          item.errorMessage = `${item.label} không được để trống.`;
-          isValid = false;
-          return isValid;
-        } else {
-          item.errorMessage = "";
-        }
-      }
-
-      if (
-        item.field === CONSTANTS.COLUMN_NAME_SHIFT.ShiftEndTime &&
-        timeRef.shiftBeginTime &&
-        item.value === timeRef.shiftBeginTime
-      ) {
-        propsModal.value.errorModal.message = `Giờ hết ca không được bằng giờ vào ca.`;
-        item.errorMessage = "Giờ hết ca không được bằng giờ vào ca.";
-        isValid = false;
-        return isValid;
-      } else {
-        item.errorMessage = "";
-      }
-
-      if (
-        item.field === "shiftEndBreakTime" &&
-        timeRef.shiftBeginBreakTime &&
-        item.value === timeRef.shiftBeginBreakTime
-      ) {
-        propsModal.value.errorModal.message = `Kết thúc nghỉ giữa ca không được bằng Bắt đầu nghỉ giữa ca.`;
-        item.errorMessage =
-          "Kết thúc nghỉ giữa ca không được bằng Bắt đầu nghỉ giữa ca.";
-        isValid = false;
-        return isValid;
-      } else {
-        item.errorMessage = "";
-      }
-
-      if (
-        item.field === CONSTANTS.COLUMN_NAME_SHIFT.ShiftBeginBreakTime &&
-        timeRef.shiftBeginTime &&
-        timeRef.shiftEndTime &&
-        (item.value < timeRef.shiftBeginTime ||
-          item.value > timeRef.shiftEndTime)
-      ) {
-        propsModal.value.errorModal.message = `Thời gian bắt đầu nghỉ giữa ca phải nằm trong khoảng thời gian tính từ giờ vào ca đến giờ hết ca. Vui lòng kiểm tra lại.`;
-        item.errorMessage =
-          "Thời gian bắt đầu nghỉ giữa ca phải nằm trong khoảng thời gian tính từ giờ vào ca đến giờ hết ca. Vui lòng kiểm tra lại.";
-        isValid = false;
-        return isValid;
-      } else {
-        item.errorMessage = "";
-      }
-
-      if (
-        item.field === "shiftEndBreakTime" &&
-        timeRef.shiftBeginTime &&
-        timeRef.shiftEndTime &&
-        (item.value < timeRef.shiftBeginTime ||
-          item.value > timeRef.shiftEndTime)
-      ) {
-        propsModal.value.errorModal.message = `Thời gian kết thúc nghỉ giữa ca phải nằm trong khoảng thời gian tính từ giờ vào ca đến giờ hết ca. Vui lòng kiểm tra lại.`;
-        item.errorMessage =
-          "Thời gian kết thúc nghỉ giữa ca phải nằm trong khoảng thời gian tính từ giờ vào ca đến giờ hết ca. Vui lòng kiểm tra lại.";
-        isValid = false;
-        return isValid;
-      } else {
-        item.errorMessage = "";
-      }
-    });
-  });
-  return isValid;
+/**
+ * Xử lý sự kiện blur trên input field
+ * Validate required field khi người dùng rời khỏi input
+ * @param {number} indexFieldItems - Index của field item
+ * @param {number} indexModalInputFields - Index của nhóm input fields
+ */
+function handleBlurAction(indexFieldItems, indexModalInputFields) {
+  if (
+    propsModal.value.modalInputFields[indexModalInputFields].formItems[
+      indexFieldItems
+    ].isRequired
+  ) {
+    if (
+      propsModal.value.modalInputFields[indexModalInputFields].formItems[
+        indexFieldItems
+      ].value === null ||
+      propsModal.value.modalInputFields[indexModalInputFields].formItems[
+        indexFieldItems
+      ].value === "" ||
+      (typeof propsModal.value.modalInputFields[indexModalInputFields]
+        .formItems[indexFieldItems].value === "string" &&
+        propsModal.value.modalInputFields[indexModalInputFields].formItems[
+          indexFieldItems
+        ].value.trim() === "")
+    ) {
+      propsModal.value.modalInputFields[indexModalInputFields].formItems[
+        indexFieldItems
+      ].message =
+        `${propsModal.value.modalInputFields[indexModalInputFields].formItems[indexFieldItems].label} không được để trống.`;
+      propsModal.value.modalInputFields[indexModalInputFields].formItems[
+        indexFieldItems
+      ].errorMessage =
+        `${propsModal.value.modalInputFields[indexModalInputFields].formItems[indexFieldItems].label} không được để trống.`;
+    } else {
+      propsModal.value.modalInputFields[indexModalInputFields].formItems[
+        indexFieldItems
+      ].errorMessage = "";
+    }
+  }
 }
-// Hàm xử lý lưu ca làm việc
+/**
+ * Validate dữ liệu trong modal ca làm việc
+ * Sử dụng useFormValidator để kiểm tra:
+ * - Required fields (Mã ca, Tên ca, Giờ vào/hết ca)
+ * - Business rules (Giờ hết ca != Giờ vào ca, thời gian nghỉ trong khoảng hợp lệ)
+ * @returns {boolean} - true nếu dữ liệu hợp lệ
+ */
+function validationShiftModal() {
+  // Định nghĩa các rule validate nghiệp vụ
+  const customRules = {
+    // Rule 1: Giờ hết ca không được bằng giờ vào ca
+    [CONSTANTS.COLUMN_NAME_SHIFT.ShiftEndTime]: () => {
+      if (
+        !isEmpty(timeRef.shiftEndTime) &&
+        !isEmpty(timeRef.shiftBeginTime) &&
+        isEqual(timeRef.shiftEndTime, timeRef.shiftBeginTime)
+      ) {
+        propsModal.value.errorModal.message = "Giờ hết ca không được bằng giờ vào ca.";
+        return {
+          isValid: false,
+          message: "Giờ hết ca không được bằng giờ vào ca.",
+        };
+      }
+      return { isValid: true };
+    },
+
+    // Rule 2: Kết thúc nghỉ giữa ca không được bằng Bắt đầu nghỉ giữa ca
+    shiftEndBreakTime: () => {
+      if (
+        !isEmpty(timeRef.shiftEndBreakTime) &&
+        !isEmpty(timeRef.shiftBeginBreakTime) &&
+        isEqual(timeRef.shiftEndBreakTime, timeRef.shiftBeginBreakTime)
+      ) {
+        propsModal.value.errorModal.message = "Kết thúc nghỉ giữa ca không được bằng Bắt đầu nghỉ giữa ca.";
+        return {
+          isValid: false,
+          message: "Kết thúc nghỉ giữa ca không được bằng Bắt đầu nghỉ giữa ca.",
+        };
+      }
+      return { isValid: true };
+    },
+
+    // Rule 3: Thời gian bắt đầu nghỉ giữa ca phải nằm trong khoảng ca làm việc
+    [CONSTANTS.COLUMN_NAME_SHIFT.ShiftBeginBreakTime]: () => {
+      if (
+        !isEmpty(timeRef.shiftBeginBreakTime) &&
+        !isEmpty(timeRef.shiftBeginTime) &&
+        !isEmpty(timeRef.shiftEndTime) &&
+        !isTimeInRange(timeRef.shiftBeginBreakTime, timeRef.shiftBeginTime, timeRef.shiftEndTime)
+      ) {
+        const message = "Thời gian bắt đầu nghỉ giữa ca phải nằm trong khoảng thời gian tính từ giờ vào ca đến giờ hết ca. Vui lòng kiểm tra lại.";
+        propsModal.value.errorModal.message = message;
+        return { isValid: false, message };
+      }
+      return { isValid: true };
+    },
+
+    // Rule 4: Thời gian kết thúc nghỉ giữa ca phải nằm trong khoảng ca làm việc  
+    shiftEndBreakTimeRange: () => {
+      if (
+        !isEmpty(timeRef.shiftEndBreakTime) &&
+        !isEmpty(timeRef.shiftBeginTime) &&
+        !isEmpty(timeRef.shiftEndTime) &&
+        !isTimeInRange(timeRef.shiftEndBreakTime, timeRef.shiftBeginTime, timeRef.shiftEndTime)
+      ) {
+        const message = "Thời gian kết thúc nghỉ giữa ca phải nằm trong khoảng thời gian tính từ giờ vào ca đến giờ hết ca. Vui lòng kiểm tra lại.";
+        propsModal.value.errorModal.message = message;
+        
+        // Gán error cho field shiftEndBreakTime
+        propsModal.value.modalInputFields.forEach(group => {
+          group.formItems.forEach(item => {
+            if (item.field === "shiftEndBreakTime") {
+              item.errorMessage = message;
+            }
+          });
+        });
+        
+        return { isValid: false, message };
+      }
+      return { isValid: true };
+    },
+  };
+
+  // Gọi validateModalForm với custom rules
+  const result = validateModalForm(
+    propsModal.value.modalInputFields,
+    customRules
+  );
+
+  // Nếu có lỗi và chưa có message, set error message đầu tiên vào errorModal
+  if (!result && !propsModal.value.errorModal.message) {
+    const firstError = Object.values(customRules).find(rule => {
+      const ruleResult = rule();
+      return !ruleResult.isValid;
+    });
+    if (firstError) {
+      const ruleResult = firstError();
+      propsModal.value.errorModal.message = ruleResult.message;
+    }
+  }
+
+  return result;
+}
+/**
+ * Lưu ca làm việc mới
+ * Validate dữ liệu, gọi API, cập nhật bảng và thông báo kết quả
+ */
 async function handleSave() {
   // Kiểm tra dữ liệu hợp lệ
   if (!validationShiftModal()) {
     return;
   }
-
+  // Bật trạng thái loading
+  appStore.setIsLoading(true);
   let formData = getDataFromModal("add");
   // Gọi API thêm mới ca làm việc
   await ShiftApi.saveShift(formData)
@@ -894,12 +1033,22 @@ async function handleSave() {
       console.error("Lỗi khi thêm ca làm việc:", error);
       errorDisplayHandler(error);
     });
+  // Tắt trạng thái loading
+  appStore.setIsLoading(false);
 }
-// Hàm xử lý lưu và thêm mới
+
+/**
+ * Lưu và tiếp tục thêm mới ca làm việc
+ * TODO: Implement chức năng lưu và giữ modal mở để thêm tiếp
+ */
 function handleSaveAdd() {
   console.log("Save and Add clicked");
 }
-// Hàm xử lý cập nhật ca làm việc
+
+/**
+ * Cập nhật thông tin ca làm việc
+ * Validate dữ liệu, gọi API, cập nhật bảng và thông báo kết quả
+ */
 async function handleUpdate() {
   // Kiểm tra dữ liệu hợp lệ
   if (!validationShiftModal()) {
@@ -908,6 +1057,7 @@ async function handleUpdate() {
 
   let formData = getDataFromModal("update");
 
+  appStore.setIsLoading(true);
   // Gọi API cập nhật ca làm việc
   await ShiftApi.update(propsModal.value.idEdited, formData)
     .then((response) => {
@@ -917,33 +1067,77 @@ async function handleUpdate() {
           const idCol = item.row.rowItems.find(
             (col) => col.columnName === CONSTANTS.COLUMN_NAME_SHIFT.ShiftId,
           );
+
           // Cập nhật dữ liệu cho các cột trong hàng tương ứng
           if (idCol?.columnData === propsModal.value.idEdited) {
             item.row.rowItems.forEach((col) => {
-              if (
-                col.columnName !== CONSTANTS.COLUMN_NAME_SHIFT.ShiftStatus &&
-                response.data[col.columnName] !== undefined
-              ) {
-                col.columnData = response.data[col.columnName];
-              }
-              if (
-                col.columnName === CONSTANTS.COLUMN_NAME_SHIFT.ShiftStatus &&
-                response.data[CONSTANTS.COLUMN_NAME_SHIFT.ShiftStatus] !==
-                  undefined
-              ) {
-                col.columnData =
-                  CONSTANTS.STATUS_SHIFT[
-                    response.data[CONSTANTS.COLUMN_NAME_SHIFT.ShiftStatus]
-                  ];
-                col.isActive = !col.isActive;
-                propsModal.value.shiftUpdated.shiftStatus = col.isActive
-                  ? CONSTANTS.STATUS_SHIFT.Active
-                  : CONSTANTS.STATUS_SHIFT.Inactive;
+              switch (col.columnName) {
+                case CONSTANTS.COLUMN_NAME_SHIFT.ShiftBeginTime:
+                case CONSTANTS.COLUMN_NAME_SHIFT.ShiftEndTime:
+                case CONSTANTS.COLUMN_NAME_SHIFT.ShiftBeginBreakTime:
+                case CONSTANTS.COLUMN_NAME_SHIFT.ShiftEndBreakTime:
+                  if (response.data[col.columnName] !== undefined) {
+                    col.columnData = formatTime(response.data[col.columnName]);
+                  }
+                  break;
+                case CONSTANTS.COLUMN_NAME_SHIFT.CreatedDate:
+                case CONSTANTS.COLUMN_NAME_SHIFT.ModifiedDate:
+                  if (response.data[col.columnName] !== undefined) {
+                    col.columnData = formatDate(response.data[col.columnName]);
+                  }
+                  break;
+                case CONSTANTS.COLUMN_NAME_SHIFT.ShiftStatus:
+                  // Xử lý riêng cho cột Trạng thái
+                  col.columnData =
+                    CONSTANTS.STATUS_SHIFT[
+                      response.data[CONSTANTS.COLUMN_NAME_SHIFT.ShiftStatus]
+                    ];
+
+                  col.isActive =
+                    response.data[CONSTANTS.COLUMN_NAME_SHIFT.ShiftStatus];
+                  propsModal.value.shiftUpdated.shiftStatus = col.isActive
+                    ? CONSTANTS.STATUS_SHIFT.Active
+                    : CONSTANTS.STATUS_SHIFT.Inactive;
+                  break;
+                default:
+                  if (response.data[col.columnName] !== undefined) {
+                    col.columnData = response.data[col.columnName];
+                  }
+                  break;
               }
             });
             // Cập nhật lại dữ liệu cho nút hành động trong hàng tương ứng
             item.row.btnActions.forEach((btnAction) => {
-              btnAction.shiftUpdated = propsModal.value.shiftUpdated;
+              btnAction.shiftUpdated = {
+                shiftId: response.data[CONSTANTS.COLUMN_NAME_SHIFT.ShiftId],
+                shiftCode: response.data[CONSTANTS.COLUMN_NAME_SHIFT.ShiftCode],
+                shiftName: response.data[CONSTANTS.COLUMN_NAME_SHIFT.ShiftName],
+                shiftDescription:
+                  response.data[CONSTANTS.COLUMN_NAME_SHIFT.ShiftDescription],
+                shiftBeginTime:
+                  response.data[CONSTANTS.COLUMN_NAME_SHIFT.ShiftBeginTime],
+                shiftEndTime:
+                  response.data[CONSTANTS.COLUMN_NAME_SHIFT.ShiftEndTime],
+                shiftBeginBreakTime:
+                  response.data[
+                    CONSTANTS.COLUMN_NAME_SHIFT.ShiftBeginBreakTime
+                  ],
+                shiftEndBreakTime:
+                  response.data[CONSTANTS.COLUMN_NAME_SHIFT.ShiftEndBreakTime],
+                shiftWorkingTime:
+                  response.data[CONSTANTS.COLUMN_NAME_SHIFT.ShiftWorkingTime],
+                shiftBreakingTime:
+                  response.data[CONSTANTS.COLUMN_NAME_SHIFT.ShiftBreakingTime],
+                shiftStatus:
+                  response.data[CONSTANTS.COLUMN_NAME_SHIFT.ShiftStatus],
+                createdBy: response.data[CONSTANTS.COLUMN_NAME_SHIFT.CreatedBy],
+                createdDate:
+                  response.data[CONSTANTS.COLUMN_NAME_SHIFT.CreatedDate],
+                modifiedBy:
+                  response.data[CONSTANTS.COLUMN_NAME_SHIFT.ModifiedBy],
+                modifiedDate:
+                  response.data[CONSTANTS.COLUMN_NAME_SHIFT.ModifiedDate],
+              };
             });
           }
         });
@@ -954,46 +1148,85 @@ async function handleUpdate() {
       console.error("Lỗi khi cập nhật ca làm việc:", error);
       errorDisplayHandler(error);
     });
+  appStore.setIsLoading(false);
 }
-// Hàm xử lý thay đổi trạng thái ca làm việc thành Đang không sử dụng
+/**
+ * Cập nhật trạng thái ca làm việc thành Đang không sử dụng (Inactive)
+ * Gọi API updateStatusInactive và xử lý lỗi
+ * @param {Array} shiftIds - Danh sách ID ca làm việc cần cập nhật
+ * @returns {Promise<Object|null>} Response từ API hoặc null nếu lỗi
+ * Created By hanv 20/01/2026
+ */
 async function handleUpdateStatusInactive(shiftIds) {
+  appStore.setIsLoading(true);
+
   return await ShiftApi.updateStatusInactive(shiftIds)
     .then((response) => {
+      appStore.setIsLoading(false);
       return response;
     })
     .catch((error) => {
+      appStore.setIsLoading(false);
       console.error("Lỗi khi thay đổi trạng thái ca làm việc:", error);
       return null;
     });
 }
-// Hàm xử lý thay đổi trạng thái ca làm việc thành Đang sử dụng
+/**
+ * Cập nhật trạng thái ca làm việc thành Đang sử dụng (Active)
+ * Gọi API updateStatusActive và xử lý lỗi
+ * @param {Array} shiftIds - Danh sách ID ca làm việc cần cập nhật
+ * @returns {Promise<Object|null>} Response từ API hoặc null nếu lỗi
+ * Created By hanv 20/01/2026
+ */
 async function handleUpdateStatusActive(shiftIds) {
+  appStore.setIsLoading(true);
   return await ShiftApi.updateStatusActive(shiftIds)
     .then((response) => {
+      appStore.setIsLoading(false);
       return response;
     })
     .catch((error) => {
+      appStore.setIsLoading(false);
       console.error("Lỗi khi thay đổi trạng thái ca làm việc:", error);
       return null;
     });
 }
-// Hàm xử lý xóa ca làm việc
+/**
+ * Xóa ca làm việc theo danh sách ID
+ * Gọi API deleteShift và hiển thị toast lỗi nếu thất bại
+ * @param {Array} shiftIds - Danh sách ID ca làm việc cần xóa
+ * @returns {Promise<Object|null>} Response từ API hoặc null nếu lỗi
+ * Created By hanv 20/01/2026
+ */
 async function deleteShifts(shiftIds) {
+  appStore.setIsLoading(true);
+
   return await ShiftApi.deleteShift(shiftIds)
     .then((response) => {
+      appStore.setIsLoading(false);
+
       return response;
     })
     .catch((error) => {
+      appStore.setIsLoading(false);
       console.error("Lỗi khi xóa ca làm việc:", error);
       showToast("Lỗi khi xóa ca làm việc", "error");
       return null;
     });
 }
-// Mở modal thêm ca làm việc
+/**
+ * Mở modal thêm/sửa ca làm việc
+ * Đặt trạng thái hiển thị modal về true
+ * Created By hanv 20/01/2026
+ */
 function openModal() {
   propsModal.value.isShowModal = true;
 }
-// Đóng modal
+/**
+ * Đóng modal và đặt lại dữ liệu form
+ * Reset id chỉnh sửa, dữ liệu form và modal lỗi
+ * Created By hanv 20/01/2026
+ */
 function closeModal() {
   propsModal.value.isShowModal = false;
   propsModal.value.idEdited = null;
@@ -1001,12 +1234,20 @@ function closeModal() {
   clearModalInputFields(propsModal.value);
   closeErrorModal();
 }
-// Đóng modal lỗi
+
+/**
+ * Đóng modal lỗi và xóa message
+ */
 function closeErrorModal() {
   propsModal.value.errorModal.message = "";
   deleteConfirmModal.value.message = "";
 }
-// Xử lý sự kiện khi nhấn nút hành động trong footer modal
+
+/**
+ * Xử lý các action từ footer buttons của modal
+ * Router actions: save, saveAdd, update, closeModal, closeErrorModal
+ * @param {string} action - Tên action cần thực hiện
+ */
 function handleFooterModalAction(action) {
   if (action === "save") {
     handleSave();
@@ -1020,7 +1261,12 @@ function handleFooterModalAction(action) {
     closeErrorModal();
   }
 }
-// Xóa dữ liệu trong modal
+
+/**
+ * Xóa toàn bộ dữ liệu trong modal input fields
+ * Reset values, errors và timeRef
+ * @param {Object} modalProps - Modal properties object
+ */
 function clearModalInputFields(modalProps) {
   modalProps.modalInputFields.forEach((group) => {
     group.formItems.forEach((item) => {
@@ -1034,7 +1280,12 @@ function clearModalInputFields(modalProps) {
   timeRef.shiftEndBreakTime = null;
   timeRef.shiftBreakingTime = null;
 }
-// Tạo nút footer động cho modal
+
+/**
+ * Tạo cấu hình buttons cho modal footer
+ * Khác nhau giữa mode 'add' và 'update'
+ * @param {string} action - Mode: 'add' hoặc 'update'
+ */
 function generateFooterButton(action) {
   propsModal.value.buttonFooter = [
     {
@@ -1056,7 +1307,10 @@ function generateFooterButton(action) {
     },
   ];
 }
-// Mở select box cho nút hành động "Khác"
+/**
+ * Đóng tất cả select box của nút hành động "Khác" trong bảng
+ * Created By hanv 20/01/2026
+ */
 function closeAllMoreMenuSelectBox() {
   propsTable.value.tableData.body.forEach((item) => {
     item.row.btnActions.forEach((btnAction) => {
@@ -1064,7 +1318,11 @@ function closeAllMoreMenuSelectBox() {
     });
   });
 }
-// Mở delete confirm modal
+/**
+ * Mở modal xác nhận xóa ca làm việc
+ * Cập nhật nội dung cảnh báo theo số bản ghi được chọn
+ * Created By hanv 20/01/2026
+ */
 function openDeleteConfirmModal() {
   if (propsTable.value.tableData.idsSelected.length === 0) return;
   if (propsTable.value.tableData.idsSelected.length === 1) {
@@ -1085,7 +1343,12 @@ function openDeleteConfirmModal() {
   deleteConfirmModal.value.message = `Các <b>Ca làm việc</b> sau khi bị xóa sẽ không thể khôi phục. Bạn có muốn tiếp tục xóa không?`;
   return;
 }
-// Xử lý thay đổi trạng thái cho nhiều ca làm việc
+/**
+ * Thay đổi trạng thái cho nhiều ca làm việc (Active/Inactive)
+ * @param {number} status - Giá trị trạng thái cần áp dụng (CONSTANTS.STATUS_SHIFT)
+ * @returns {Promise<void>}
+ * Created By hanv 20/01/2026
+ */
 async function handleStatusMultiple(status) {
   let response;
   if (status === CONSTANTS.STATUS_SHIFT.Active) {
@@ -1121,7 +1384,17 @@ async function handleStatusMultiple(status) {
     });
   }
 }
-// Xử lý sự kiện khi nhấn nút hành động trong bảng
+/**
+ * Router xử lý tất cả action phát sinh từ bảng (edit, add, duplicate, sort, filter, delete,...)
+ * @param {string} action - Tên action từ BaseTable
+ * @param {Object|null} shiftUpdated - Dữ liệu ca làm việc liên quan (nếu có)
+ * @param {number} indexTbdItem - Index hàng trong bảng
+ * @param {number} indexBtnAction - Index nút hành động
+ * @param {Event|string} event - Event DOM hoặc payload (từ khóa tìm kiếm)
+ * @param {number} sortType - Kiểu sắp xếp (Enums.SortType)
+ * @returns {Promise<void>}
+ * Created By hanv 20/01/2026
+ */
 async function handleActionTableBtn(
   action,
   shiftUpdated = null,
@@ -1237,8 +1510,18 @@ async function handleActionTableBtn(
       propsTable.value.tableData.body.splice(indexTbdItem, 1);
       closeAllMoreMenuSelectBox();
 
+      // Nếu sau khi xóa mà không còn dữ liệu thì đặt lại trang hiện tại về trang trước đó
+      if (propsTable.value.tableData.body.length === 0) {
+        propsTable.value.tableData.pagination.currentPage -= 1;
+      }
+
+      // Cập nhật lại tổng số bản ghi trong phân trang
+      propsTable.value.tableData.pagination.totalCount -= 1;
+
       showToast("Xóa Ca làm việc thành công", "success");
     }
+
+    closeErrorModal();
     return;
   }
   // Xử lý thay đổi trạng thái ca làm việc thành Đang sử dụng cho nhiều ca
@@ -1319,6 +1602,16 @@ async function handleActionTableBtn(
           );
         },
       );
+
+      // Nếu sau khi xóa mà không còn dữ liệu thì đặt lại trang hiện tại về trang trước đó
+      if (propsTable.value.tableData.body.length === 0) {
+        propsTable.value.tableData.pagination.currentPage -= 1;
+      }
+
+      // Cập nhật lại tổng số bản ghi trong phân trang
+      propsTable.value.tableData.pagination.totalCount -=
+        propsTable.value.tableData.idsSelected.length;
+
       propsTable.value.tableData.idsSelected = [];
       showToast("Xóa Ca làm việc thành công", "success");
       closeErrorModal();
@@ -1336,16 +1629,24 @@ async function handleActionTableBtn(
   }
   // Sắp xếp cột
   if (action === "sort") {
+    appStore.setIsLoading(true);
+
     checkExistFilterRef(sortType);
     await loadShiftsWithFilter();
+
+    appStore.setIsLoading(false);
     closeAllSortMenu();
     return;
   }
   // Tìm kiếm theo từ khóa
   if (action === "searchByKeyword") {
+    appStore.setIsLoading(true);
+
     // Gán giá trị từ khóa tìm kiếm vào filter
     filterRef.value.SearchKeyword = event;
     await loadShiftsWithFilter();
+    appStore.setIsLoading(false);
+
     return;
   }
   // Mở modal lọc giá trị cột
@@ -1360,11 +1661,14 @@ async function handleActionTableBtn(
   }
   // Lưu giá trị lọc cột
   if (action === "saveFilterColumnValue") {
+    appStore.setIsLoading(true);
+
     checkExistFilterRef(null);
     // Đặt lại trang hiện tại về 1
     propsTable.value.tableData.pagination.currentPage = 0;
-    await loadShiftsWithFilter();
     closeAllFilterValueColumnModal();
+    await loadShiftsWithFilter();
+    appStore.setIsLoading(false);
     return;
   }
   // Tải lại dữ liệu bảng
@@ -1399,7 +1703,11 @@ async function handleActionTableBtn(
     return;
   }
 }
-// Xóa tất cả điều kiện lọc
+/**
+ * Xóa tất cả điều kiện lọc đang áp dụng trên bảng
+ * Reset cả filterRef và trạng thái filter trên header
+ * Created By hanv 20/01/2026
+ */
 function removeAllConditionFilter() {
   // Xóa tất cả điều kiện lọc trong filterRef
   filterRef.value.FilterByShiftColumn.forEach((filter, index) => {
@@ -1407,7 +1715,7 @@ function removeAllConditionFilter() {
     filter.FilterColumnType = null;
     filter.DateFilterColumnType = null;
   });
-  
+
   // Đặt lại giá trị lọc trong bảng
   propsTable.value.tableData.header.forEach((headerItem) => {
     headerItem.valueFilterType = null;
@@ -1416,7 +1724,11 @@ function removeAllConditionFilter() {
     headerItem.filterTypeAfterSaved = null;
   });
 }
-// Xóa điều kiện lọc của cột hiện tại
+/**
+ * Xóa điều kiện lọc của cột đang thao tác (indexTbhItem)
+ * Cập nhật filterRef và giá trị lưu trong header
+ * Created By hanv 20/01/2026
+ */
 function removeConditionFilterOfColumn() {
   // Xóa điều kiện lọc trong filterRef
   filterRef.value.FilterByShiftColumn.forEach((filter, index) => {
@@ -1446,7 +1758,12 @@ function removeConditionFilterOfColumn() {
     propsTable.value.tableData.indexTbhItem
   ].filterTypeAfterSaved = null;
 }
-// Kiểm tra filterRef đã tồn tại bộ lọc cho cột hay chưa, nếu có thì cập nhật lại giá trị
+/**
+ * Kiểm tra và cập nhật/khởi tạo filterRef cho cột hiện tại
+ * @param {number|null} sortType - Kiểu sắp xếp cần cập nhật, null nếu không đổi
+ * @returns {void}
+ * Created By hanv 20/01/2026
+ */
 function checkExistFilterRef(sortType) {
   let isExist = false;
 
@@ -1525,7 +1842,10 @@ function checkExistFilterRef(sortType) {
   ].filterTypeAfterSaved =
     propsTable.value.tableData.styleColumnValueModal.filterType;
 }
-// Đóng tất cả các select box nút hành động "Khác"
+/**
+ * Đóng tất cả select box của nút hành động "Khác" trên tất cả hàng
+ * Created By hanv 20/01/2026
+ */
 function closeAllMenuBtnAction() {
   propsTable.value.tableData.body.forEach((item, idxTbd) => {
     item.row.btnActions.forEach((btnAction, idxBtnAction) => {
@@ -1533,24 +1853,37 @@ function closeAllMenuBtnAction() {
     });
   });
 }
-// Đóng tất cả các select box sắp xếp cột
+/**
+ * Đóng tất cả select box sắp xếp cột
+ * Created By hanv 20/01/2026
+ */
 function closeAllSortMenu() {
   propsTable.value.tableData.header.forEach((item, idx) => {
     item.isOpenSortMenu = false;
   });
 }
-// Đóng tất cả các modal lọc giá trị cột
+/**
+ * Đóng tất cả modal lọc giá trị cột đang mở
+ * Created By hanv 20/01/2026
+ */
 function closeAllFilterValueColumnModal() {
   propsTable.value.tableData.header.forEach((item, idx) => {
     item.isOpenFilterColumnValueModal = false;
   });
 }
-// Đặt lại style cho tất cả các menu
+/**
+ * Reset toàn bộ style menu (sort, more, filter) về mặc định
+ * Created By hanv 20/01/2026
+ */
 function resetAllMenu() {
   propsTable.value.tableData.styleColumnValueModal = {};
   propsTable.value.tableData.styleHeaderContainer = {};
   propsTable.value.tableData.styleMoreContainer = {};
 }
+/**
+ * Reset menu trừ modal lọc giá trị cột (giữ nguyên filter modal)
+ * Created By hanv 20/01/2026
+ */
 function resetMenuUnlessFilterModal() {
   propsTable.value.tableData.styleHeaderContainer = {};
   propsTable.value.tableData.styleMoreContainer = {};
@@ -1907,7 +2240,13 @@ function getStatusActionText(indexTbdItem) {
 
   return statusCol.isActive ? "Ngừng sử dụng" : "Sử dụng";
 }
-// Hàm tạo dữ liệu hàng cho bảng từ dữ liệu ca làm việc
+
+/**
+ * Tạo cấu trúc dữ liệu row cho bảng từ shift data
+ * Map dữ liệu ca làm việc thành format của table component
+ * @param {Object} item - Dữ liệu ca làm việc từ API
+ * @returns {Object} Row data đã được format cho table
+ */
 function generateRowDataTableBody(item) {
   return {
     isSelected: false,
@@ -2015,6 +2354,8 @@ function generateRowDataTableBody(item) {
 // Gọi API lấy danh sách ca làm việc phân trang
 const loadShifts = async () => {
   try {
+    appStore.setIsLoading(true);
+
     const response = await ShiftApi.getAllPagination(
       propsTable.value.tableData.pagination.pageSize,
       propsTable.value.tableData.pagination.currentPage,
@@ -2027,13 +2368,18 @@ const loadShifts = async () => {
           row,
         });
       });
+      // Cập nhật tổng số bản ghi
       propsTable.value.tableData.pagination.totalCount = response.totalItem;
+      appStore.setIsLoading(false);
     }
   } catch (error) {
     console.error("Lỗi khi lấy danh sách ca làm việc:", error);
+    appStore.setIsLoading(false);
   }
 };
 const loadShiftsWithFilter = async () => {
+  appStore.setIsLoading(true);
+
   const filter = clone(filterRef.value);
   await ShiftApi.getAllPaginationFilter(
     filter,
@@ -2055,6 +2401,7 @@ const loadShiftsWithFilter = async () => {
     .catch((error) => {
       console.error("Lỗi khi lấy dữ liệu ca làm việc:", error);
     });
+  appStore.setIsLoading(false);
 };
 // Hàm xử lý thay đổi trang hiện tại
 function handleChangeCurrentPage(newPage) {
@@ -2101,6 +2448,7 @@ onMounted(async () => {
 
 <template>
   <div class="development-page">
+    
     <BasePageHeader title="Ca làm việc">
       <template #actions>
         <BaseBtn
@@ -2120,6 +2468,7 @@ onMounted(async () => {
       @selected-ids-changed="handleChangedSelectedIds"
       @handle-change-current-page="handleChangeCurrentPage"
     />
+
     <BaseModal
       :modal-title="
         propsModal.idEdited === null ? 'Thêm Ca làm việc' : 'Sửa Ca làm việc'
@@ -2134,6 +2483,7 @@ onMounted(async () => {
       @closeModal="closeModal"
       @action="handleFooterModalAction"
       @closeErrorModal="closeErrorModal"
+      @blur-action="handleBlurAction"
     >
     </BaseModal>
   </div>

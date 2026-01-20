@@ -13,6 +13,11 @@ const axiosInstance = axios.create({
   // },
   // Serialize array params để .NET Model Binding nhận đúng
   // Format: ShiftIds=id1&ShiftIds=id2 (không có dấu [])
+  /**
+   * Serialize query params so .NET model binding receives repeated keys instead of array brackets.
+   * @param {Record<string, unknown>} params - Query params object.
+   * @returns {string} Query string formatted for repeated keys.
+   */
   paramsSerializer: (params) => {
     return qs.stringify(params, { arrayFormat: 'repeat' });
   },
@@ -24,6 +29,11 @@ const axiosInstance = axios.create({
  * Xử lý response trước khi trả về cho caller
  */
 axiosInstance.interceptors.response.use(
+  /**
+   * Handle successful responses by returning only the data payload.
+   * @param {import('axios').AxiosResponse} response - Axios response object.
+   * @returns {*} Response data payload.
+   */
   (response) => {
     // Log response trong môi trường development
     console.log('Response:', response.config.url, response.data);
@@ -31,6 +41,11 @@ axiosInstance.interceptors.response.use(
     // Trả về data trực tiếp thay vì toàn bộ response
     return response.data;
   },
+  /**
+   * Normalize response errors with consistent shape.
+   * @param {import('axios').AxiosError} error - Axios error object.
+   * @returns {Promise<never>} Rejected promise with normalized error info.
+   */
   async (error) => {
     const originalRequest = error.config;
 

@@ -1,6 +1,15 @@
 import { onMounted, onUnmounted } from 'vue'
 
+/**
+ * Đăng ký phím tắt toàn cục cho component.
+ * @param {'esc'|'ctrl+s'|'ctrl+shift+s'} combo - Tổ hợp phím cần lắng nghe.
+ * @param {Function} handler - Hàm thực thi khi nhấn phím tắt.
+ */
 export function useShortCut(combo, handler) {
+  /**
+   * Xử lý sự kiện keydown và gọi handler nếu trùng tổ hợp phím.
+   * @param {KeyboardEvent} e - Sự kiện bàn phím.
+   */
   function onKeydown(e) {
     switch (combo) {
       case 'esc':

@@ -1,54 +1,109 @@
 <script setup>
 import { defineEmits, onBeforeMount, onUpdated } from "vue";
 
+/**
+ * BaseBtn Component - Nút bấm tái sử dụng với nhiều kiểu và trạng thái
+ * Hỗ trợ icon, text, disabled state, tooltip, và các kiểu button khác nhau
+ * Emit click event khi người dùng nhấn nút
+ * Created By hanv 20/01/2026
+ */
+
 const props = defineProps({
   // add-white, inactive, trash, reload, pencil, feature-more-blue, step-backward, angle-left, angle-right, step-forward
+  /**
+   * Tên icon sử dụng (các kiểu: add-white, trash, reload, pencil, etc.)
+   * @type {String}
+   */
   icon: {
     type: String,
     default: "",
   },
+  /**
+   * Text hiển thị trên nút
+   * @type {String}
+   */
   text: {
     type: String,
     default: "",
   },
+  /**
+   * Kiểu button (solid-brand, outline-neutral, outline-danger, etc.)
+   * @type {String}
+   */
   type: {
     type: String,
     default: "solid-brand",
   },
+  /**
+   * Trạng thái disabled của nút
+   * @type {Boolean}
+   */
   isDisabled: {
     type: Boolean,
     default: false,
   },
+  /**
+   * Ẩn border của nút
+   * @type {Boolean}
+   */
   isHideBorder: {
     type: Boolean,
     default: false,
   },
+  /**
+   * Kiểu nút hành động trong bảng
+   * @type {Boolean}
+   */
   isBtnActionTable: {
     type: Boolean,
     default: false,
   },
+  /**
+   * Kiểu nút phân trang
+   * @type {Boolean}
+   */
   isBtnPagination: {
     type: Boolean,
     default: false,
   },
+  /**
+   * Tooltip text hiển thị khi hover nút
+   * @type {String}
+   */
   tooltipText: {
     type: String,
     default: "",
   },
+  /**
+   * Kích thước icon (icon16, icon20, icon24)
+   * @type {String}
+   */
   iconSize: {
     type: String,
     default: "icon16",
   },
+  /**
+   * Padding giữa icon và text
+   * @type {String}
+   */
   paddingTextIcon: {
     type: String,
     default: "pl-1",
   },
+  /**
+   * Bỏ padding mặc định của nút
+   * @type {Boolean}
+   */
   isNoPadding: {
     type: Boolean,
     default: false,
   },
 });
 
+/**
+ * Emit click event khi người dùng nhấn nút
+ * @event click
+ */
 const emit = defineEmits(["click"]);
 </script>
 

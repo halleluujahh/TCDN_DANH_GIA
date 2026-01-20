@@ -1,30 +1,65 @@
 <script setup>
 import { useShortCut } from '../../composables/useShortCut';
 
+/**
+ * BaseModalError Component - Modal thông báo lỗi/cảnh báo
+ * Hiển thị modal overlay với title, message và footer buttons
+ * Hỗ trợ đóng bằng phím ESC
+ * Created By hanv 20/01/2026
+ */
+
 const props = defineProps({
+  /**
+   * Icon tên cho title
+   * @type {String}
+   */
   iconTitle: {
     type: String,
     default: "",
   },
+  /**
+   * Tooltip text cho icon đóng
+   * @type {String}
+   */
   iconTooltip: {
     type: String,
     default: "",
   },
+  /**
+   * Tiêu đề modal
+   * @type {String}
+   */
   title: {
     type: String,
     default: "",
   },
+  /**
+   * Nội dung message (hỗ trợ HTML)
+   * @type {String}
+   */
   message: {
     type: String,
     default: "",
   },
+  /**
+   * Danh sách footer buttons
+   * Mỗi button có: text, type, action
+   * @type {Array}
+   */
   footerButtons: {
     type: Array,
     default: () => [],
   },
 });
 
+/**
+ * Emit action event khi click button hoặc close icon
+ * @event action
+ * @param {String} action - Tên action cần thực hiện
+ */
 const emit = defineEmits(["action"]);
+
+// Đóng modal khi nhấn phím ESC
 useShortCut("esc", () => {
   emit("action", "closeErrorModal");
 });

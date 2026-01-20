@@ -1,5 +1,10 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
+
+/**
+ * Global app store quản lý sidebar và trạng thái loading.
+ * @returns {{sidebarCollapsed: import('vue').Ref<boolean>, sidebarItems: import('vue').Ref<Array>, isLoading: import('vue').Ref<boolean>, toggleSidebar: Function, setIsLoading: Function}}
+ */
 export const useAppStore = defineStore('app', () => {
   // Sidebar collapsed state
   const sidebarCollapsed = ref(localStorage.getItem('sidebarCollapsed') === 'true')
@@ -561,7 +566,19 @@ export const useAppStore = defineStore('app', () => {
       },
     ]
   )
+  const isLoading = ref(false)
 
+  /**
+   * Cập nhật cờ loading toàn ứng dụng.
+   * @param {boolean} value - Trạng thái loading mới.
+   */
+  function setIsLoading(value) {
+    isLoading.value = value
+  }
+
+  /**
+   * Đảo trạng thái thu gọn/ mở rộng sidebar và lưu vào localStorage.
+   */
   function toggleSidebar() {
     sidebarCollapsed.value = !sidebarCollapsed.value
     localStorage.setItem('sidebarCollapsed', sidebarCollapsed.value.toString())
@@ -570,6 +587,8 @@ export const useAppStore = defineStore('app', () => {
   return {
     sidebarCollapsed,
     sidebarItems,
-    toggleSidebar
+    toggleSidebar,
+    isLoading,
+    setIsLoading
   }
 })

@@ -1,4 +1,8 @@
-// Định dạng thời gian dạng HH:MM
+/**
+ * Định dạng chuỗi thời gian tự do thành HH:MM (có thể rỗng nếu chưa đủ ký tự).
+ * @param {string} value - Chuỗi nhập vào.
+ * @returns {string} Chuỗi HH:MM sau khi chuẩn hóa.
+ */
 export const formatTime = (value) => {
     if (!value) return ''
 
@@ -24,7 +28,11 @@ export const formatTime = (value) => {
         ? `${hour}:${minute}`
         : hour
 }
-// Định dạng thời gian dạng HH:MM (LUÔN hợp lệ)
+/**
+ * Chuẩn hóa thời gian thành HH:MM luôn hợp lệ, tự padding và giới hạn 23:59.
+ * @param {string|number} value - Giá trị thời gian nhập vào.
+ * @returns {string} Chuỗi HH:MM hợp lệ.
+ */
 export const formatTimeAlwaysValid = (value) => {
     if (value === null || value === undefined || value === '') return ''
 
@@ -49,12 +57,21 @@ export const formatTimeAlwaysValid = (value) => {
 
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 }
-// Chuyển thời gian dạng HH:MM sang phút
+/**
+ * Chuyển chuỗi HH:MM sang tổng số phút.
+ * @param {string} time - Chuỗi thời gian HH:MM.
+ * @returns {number} Số phút tính từ 00:00.
+ */
 const toMinutes = (time) => {
     const [h, m] = time.split(':').map(Number)
     return h * 60 + m
 }
-// Tính số phút làm việc giữa thời gian bắt đầu và kết thúc
+/**
+ * Tính tổng số phút giữa thời gian bắt đầu và kết thúc, hỗ trợ ca qua ngày.
+ * @param {string} beginTime - Thời gian bắt đầu HH:MM.
+ * @param {string} endTime - Thời gian kết thúc HH:MM.
+ * @returns {number} Số phút làm việc.
+ */
 export const calcWorkingMinutes = (beginTime, endTime) => {
     if (!beginTime || !endTime) return 0
 
@@ -69,7 +86,13 @@ export const calcWorkingMinutes = (beginTime, endTime) => {
     // ca qua ngày
     return (24 * 60 - start) + end
 }
-// Tính số giờ làm việc giữa thời gian bắt đầu và kết thúc, trừ thời gian nghỉ giữa ca
+/**
+ * Tính số giờ làm việc (đã trừ thời gian nghỉ) giữa hai mốc thời gian.
+ * @param {string} beginTime - Thời gian bắt đầu HH:MM.
+ * @param {string} endTime - Thời gian kết thúc HH:MM.
+ * @param {string} breakingTime - Thời gian nghỉ giữa ca, dạng số với dấu phẩy hoặc chấm.
+ * @returns {string} Số giờ định dạng 0,00.
+ */
 export const calcWorkingHours = (beginTime, endTime, breakingTime) => {
     let result;
     if (breakingTime && breakingTime !== null && breakingTime !== undefined) {
@@ -82,7 +105,11 @@ export const calcWorkingHours = (beginTime, endTime, breakingTime) => {
     }
     return Number(result).toFixed(2).replace('.', ',');
 }
-// Định dạng thời gian dạng dd/mm/yyyy
+/**
+ * Định dạng ngày sang dd/mm/yyyy.
+ * @param {string|number|Date} value - Giá trị ngày.
+ * @returns {string} Chuỗi ngày dd/mm/yyyy hoặc rỗng.
+ */
 export const formatDate = (value) => {
     if (!value) return ''
     const date = new Date(value)
@@ -91,16 +118,25 @@ export const formatDate = (value) => {
     const year = date.getFullYear()
     return `${day}/${month}/${year}`
 }
+/**
+ * Định dạng số với 2 chữ số thập phân, dùng dấu phẩy.
+ * @param {string|number} value - Giá trị số.
+ * @returns {string} Chuỗi số với 2 chữ số thập phân.
+ */
 export const formatFixed2Number = (value) => {
-  if (value === null || value === undefined || value === '') {
-    return '0,00'
-  }
+    if (value === null || value === undefined || value === '') {
+        return '0,00'
+    }
 
-  const num = Number(String(value).replace(',', '.'))
+    const num = Number(String(value).replace(',', '.'))
 
-  return num.toFixed(2).replace('.', ',')
+    return num.toFixed(2).replace('.', ',')
 }
-// Định dạng ngày dạng DD/MM/YYYY khi nhập
+/**
+ * Định dạng input ngày người dùng gõ thành DD/MM/YYYY, giữ nguyên khi chưa đủ ký tự.
+ * @param {string} value - Chuỗi ngày người dùng nhập.
+ * @returns {string} Chuỗi sau khi thêm dấu '/'.
+ */
 export const formatDateInput = (value) => {
     if (!value) return ''
 
@@ -140,7 +176,11 @@ export const formatDateInput = (value) => {
         return day
     }
 }
-// Định dạng ngày dạng DD/MM/YYYY (LUÔN hợp lệ)
+/**
+ * Chuẩn hóa input ngày thành DD/MM/YYYY luôn hợp lệ, tự padding và giới hạn ngày theo tháng.
+ * @param {string|number} value - Giá trị ngày nhập.
+ * @returns {string} Chuỗi ngày hợp lệ DD/MM/YYYY.
+ */
 export const formatDateInputAlwaysValid = (value) => {
     if (value === null || value === undefined || value === '') return ''
 
