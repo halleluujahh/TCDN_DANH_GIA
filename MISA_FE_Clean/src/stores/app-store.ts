@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
+import { CONSTANTS } from "../constants/common";
 
 /**
  * Global app store quản lý sidebar và trạng thái loading.
@@ -575,9 +576,262 @@ export const useAppStore = defineStore("app", () => {
     localStorage.setItem("sidebarCollapsed", sidebarCollapsed.value.toString());
   }
 
+  // Định nghĩa bảng ca làm việc
+  const tableHeaders = ref([
+    {
+      key: "shiftId",
+      title: "Id ca",
+      type: "text",
+      sortable: true,
+      hiding: true,
+
+      realPos: 0,
+    },
+    {
+      key: "shiftCode",
+      title: "Mã ca",
+      type: "text",
+      width: "120px",
+      sortable: true,
+
+      filterable: true,
+      filterType: "text",
+      filterOptions: CONSTANTS.FilterOptionsType.Text,
+
+      textAlign: "left",
+
+      realPos: 1,
+    },
+    {
+      key: "shiftName",
+      title: "Tên ca",
+      type: "text",
+      width: "250px",
+      sortable: true,
+
+      filterable: true,
+      filterType: "text",
+      filterOptions: CONSTANTS.FilterOptionsType.Text,
+
+      textAlign: "left",
+
+      realPos: 2,
+    },
+    {
+      key: "shiftBeginTime",
+      title: "Giờ vào ca",
+      type: "time",
+      width: "150px",
+      sortable: true,
+
+      filterable: true,
+      filterType: "text",
+      filterOptions: CONSTANTS.FilterOptionsType.Text,
+
+      textAlign: "left",
+      render: (rowData: string | number) => {
+        return rowData ? rowData.toString().slice(0, 5) : "--";
+      },
+
+      realPos: 3,
+    },
+    {
+      key: "shiftEndTime",
+      title: "Giờ hết ca",
+      type: "time",
+      width: "150px",
+      sortable: true,
+
+      filterable: true,
+      filterType: "text",
+      filterOptions: CONSTANTS.FilterOptionsType.Text,
+
+      textAlign: "left",
+      render: (rowData: string | number) => {
+        return rowData ? rowData.toString().slice(0, 5) : "--";
+      },
+
+      realPos: 4,
+    },
+    {
+      key: "shiftBeginBreakTime",
+      title: "Bắt đầu nghỉ giữa ca",
+      type: "time",
+      width: "220px",
+      sortable: true,
+
+      filterable: true,
+      filterType: "text",
+      filterOptions: CONSTANTS.FilterOptionsType.Text,
+
+      textAlign: "left",
+      render: (rowData: string | number) => {
+        return rowData ? rowData.toString().slice(0, 5) : "--";
+      },
+
+      realPos: 5,
+    },
+    {
+      key: "shiftEndBreakTime",
+      title: "Kết thúc",
+      type: "time",
+      width: "220px",
+      sortable: true,
+
+      filterable: true,
+      filterType: "text",
+      filterOptions: CONSTANTS.FilterOptionsType.Text,
+
+      textAlign: "left",
+      render: (rowData: string | number) => {
+        return rowData ? rowData.toString().slice(0, 5) : "--";
+      },
+
+      realPos: 6,
+    },
+    {
+      key: "shiftWorkingTime",
+      title: "Thời gian làm việc (giờ)",
+      type: "number",
+      width: "250px",
+      sortable: true,
+
+      filterable: true,
+      filterType: "text",
+      filterOptions: CONSTANTS.FilterOptionsType.Text,
+
+      textAlign: "right",
+      render: (rowData: string | number) => {
+        return rowData ? Number(rowData).toFixed(2).toString() : "0,00";
+      },
+
+      realPos: 7,
+    },
+    {
+      key: "shiftBreakingTime",
+      title: "Thời gian nghỉ giữa ca (giờ)",
+      type: "number",
+      width: "250px",
+      sortable: true,
+
+      filterable: true,
+      filterType: "text",
+      filterOptions: CONSTANTS.FilterOptionsType.Text,
+
+      textAlign: "right",
+      render: (rowData: string | number) => {
+        return rowData ? Number(rowData).toFixed(2).toString() : "0,00";
+      },
+
+      realPos: 8,
+    },
+    {
+      key: "shiftStatus",
+      title: "Trạng thái",
+      type: "boolean",
+      width: "200px",
+      sortable: false,
+
+      filterable: true,
+      filterType: "text",
+      filterOptions: CONSTANTS.FilterOptionsType.Text,
+
+      textAlign: "left",
+      render: (rowData: string | number) => {
+        return rowData === 1 ? "Đang sử dụng" : "Ngừng sử dụng";
+      },
+
+      realPos: 9,
+    },
+    {
+      key: "createdBy",
+      title: "Người tạo",
+      type: "text",
+      width: "160px",
+      sortable: true,
+
+      filterable: true,
+      filterType: "text",
+      filterOptions: CONSTANTS.FilterOptionsType.Text,
+
+      textAlign: "left",
+
+      realPos: 10,
+    },
+    {
+      key: "createdDate",
+      title: "Ngày tạo",
+      type: "date",
+      width: "160px",
+      sortable: true,
+
+      filterable: true,
+      filterType: "date",
+      filterOptions: CONSTANTS.FilterOptionsType.Date,
+
+      textAlign: "left",
+      render: (rowData: string | number) => {
+        const date = new Date(rowData as string);
+        return date
+          ? date.toLocaleDateString("vi-VN", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })
+          : "--";
+      },
+
+      realPos: 11,
+    },
+    {
+      key: "modifiedBy",
+      title: "Người sửa",
+      type: "text",
+      width: "160px",
+      sortable: true,
+
+      filterable: true,
+      filterType: "text",
+      filterOptions: CONSTANTS.FilterOptionsType.Text,
+
+      textAlign: "left",
+      render: (rowData: string | number) => {
+        return rowData ? rowData.toString() : "--";
+      },
+
+      realPos: 12,
+    },
+    {
+      key: "modifiedDate",
+      title: "Ngày sửa",
+      type: "date",
+      width: "160px",
+      sortable: true,
+
+      filterable: true,
+      filterType: "date",
+      filterOptions: CONSTANTS.FilterOptionsType.Date,
+
+      textAlign: "left",
+      render: (rowData: string | number) => {
+        const date = new Date(rowData as string);
+        return date
+          ? date.toLocaleDateString("vi-VN", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })
+          : "--";
+      },
+
+      realPos: 13,
+    },
+  ]);
+
   return {
     sidebarCollapsed,
     sidebarItems,
     toggleSidebar,
+    tableHeaders,
   };
 });

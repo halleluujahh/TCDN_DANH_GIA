@@ -19,6 +19,18 @@ const shiftStore = defineStore("shiftStore", {
     setError(error: string | null) {
       this.error = error;
     },
+    updateStatusRows(ids: Set<string>, isActive: boolean) {
+      this.rows = this.rows.map((shift) => {
+        if (ids.has(shift.shiftId)) {
+          return { ...shift, shiftStatus: isActive ? 1 : 0 };
+        }
+        return shift;
+      });
+    },
+    deleteRows(ids: Set<string>) {
+      this.rows = this.rows.filter((shift) => !ids.has(shift.shiftId));
+    },
+
     /**
      * Load shifts with pagination
      * @param pageSize - number of items per page
@@ -39,7 +51,7 @@ const shiftStore = defineStore("shiftStore", {
 
     /**
      * Lấy ca làm việc với phân trang và lọc
-     * @param params 
+     * @param params
      * @returns {Promise<void>}
      */
     async loadShiftsWithFilter(params: {
@@ -51,6 +63,51 @@ const shiftStore = defineStore("shiftStore", {
         this.setLoading(true);
         const response = await shiftService.getAllPaginationFilter(params);
         this.setRows(response.listData);
+      } catch (error: any) {
+        this.setError(error.message);
+      } finally {
+        this.setLoading(false);
+      }
+    },
+    /**
+     * Kích hoạt nhiều ca làm việc
+     * @param ids
+     */
+    async activeMultipleShifts(ids: Set<string>): Promise<void> {
+      try {
+        this.setLoading(true);
+        await shiftService.updateStatusActive(ids);
+        this.updateStatusRows(ids, true);
+      } catch (error: any) {
+        this.setError(error.message);
+      } finally {
+        this.setLoading(false);
+      }
+    },
+    /**
+     * Hủy kích hoạt nhiều ca làm việc
+     * @param ids
+     */
+    async inactiveMultipleShifts(ids: Set<string>): Promise<void> {
+      try {
+        this.setLoading(true);
+        await shiftService.updateStatusInactive(ids);
+        this.updateStatusRows(ids, false);
+      } catch (error: any) {
+        this.setError(error.message);
+      } finally {
+        this.setLoading(false);
+      }
+    },
+    /**
+     * Xoá nhiều ca làm việc
+     * @param ids
+     */
+    async deleteMultipleShifts(ids: Set<string>): Promise<void> {
+      try {
+        this.setLoading(true);
+        await shiftService.delete(ids);
+        this.deleteRows(ids);
       } catch (error: any) {
         this.setError(error.message);
       } finally {

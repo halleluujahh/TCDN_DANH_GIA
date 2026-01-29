@@ -6,5 +6,5 @@ export interface BaseService<T> {
 
   create(item: T): Promise<Response<T>>;
   update(id: string, item: T): Promise<Response<T>>;
-  delete(id: Array<string>): Promise<Response<null>>;
+  delete(id: Set<string>): Promise<Response<null>>;
 }

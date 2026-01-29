@@ -5,7 +5,6 @@ import { CONSTANTS } from "../constants/common";
 interface BaseInputProps {
   // Thuộc tính input
   fieldName?: string;
-  type?: string;
   placeholder?: string;
   disabled?: boolean;
   readonly?: boolean;
@@ -95,7 +94,7 @@ const isHasError = computed(() => {
 
 <style scoped>
 .search {
-  mask-image: url("/src/assets/icons/pas.Icon\ Warehouse-e29a964d.svg");
+  mask-image: url("/src/assets/icons/pas.Icon Warehouse-e29a964d.svg");
   mask-repeat: no-repeat;
   background-color: #4b5563;
   mask-position: 0px 0px;

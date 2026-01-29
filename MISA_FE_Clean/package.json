@@ -22,6 +22,7 @@
     "vue3-treeview": "^0.4.2"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.23",
     "@types/node": "^24.10.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",

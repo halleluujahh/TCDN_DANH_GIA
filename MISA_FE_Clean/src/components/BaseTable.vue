@@ -68,11 +68,7 @@ const isActive = (row: TableRow<T>, column: TableColumn<T>): string => {
   <div class="body-list">
     <div class="form-list flex flex-column">
       <div class="flex flex-column">
-        <div class="condition-box flex-row">
-          <div class="flex control-gap items-center">
-            <slot name="toolbar-grid"></slot>
-          </div>
-        </div>
+        <slot name="toolbar-grid"></slot>
       </div>
     </div>
     <div class="voucher-body-grid">
@@ -293,45 +289,6 @@ const isActive = (row: TableRow<T>, column: TableColumn<T>): string => {
   height: 100%;
   display: flex;
   flex-direction: column;
-}
-/* ==================== Search Filter Section ====================*/
-.condition-box {
-  padding: 8px 16px;
-  background: #fff;
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
-}
-.condition-box .search-input-list {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  width: 200px;
-  height: auto;
-}
-.icon16.search {
-  mask-image: url("/src/assets/icons/pas.Icon\ Warehouse-e29a964d.svg");
-  mask-repeat: no-repeat;
-  background-color: #4b5563;
-  mask-position: 0px 0px;
-}
-.icon.left {
-  margin: 0 4px 0 0;
-}
-.feature-batch {
-  background-color: #fff;
-  align-items: center;
-  display: flex;
-  gap: 8px;
-  margin-left: 8px;
-  height: 28px;
-}
-.feature-batch .unselected {
-  color: #009b71;
-  cursor: pointer;
-  margin: 0 8px;
-}
-.form-list .action {
-  z-index: 1;
-  column-gap: 8px;
-  margin: auto 0 auto auto;
 }
 /* ==================== Table Section ====================*/
 .voucher-body-grid {

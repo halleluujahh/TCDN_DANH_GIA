@@ -10,7 +10,6 @@ export interface TableColumn<T> {
   textAlign?: "left" | "center" | "right";
   type: "text" | "number" | "time" | "date" | "boolean" | "custom";
   realPos: number;
-  pinPos?: number;
 
   // Tùy chọn chức năng
   groupable?: boolean;

@@ -51,7 +51,7 @@ export class ShiftService implements BaseService<Shift> {
    * @param ids
    * @returns {Promise<Response<Shift>>}
    */
-  async updateStatusActive(ids: Array<string>): Promise<Response<Shift>> {
+  async updateStatusActive(ids: Set<string>): Promise<Response<Shift>> {
     return await shiftApi.updateStatus("/update-status-active", ids);
   }
   /**
@@ -59,7 +59,7 @@ export class ShiftService implements BaseService<Shift> {
    * @param ids
    * @returns {Promise<Response<Shift>>}
    */
-  async updateStatusInactive(ids: Array<string>): Promise<Response<Shift>> {
+  async updateStatusInactive(ids: Set<string>): Promise<Response<Shift>> {
     return await shiftApi.updateStatus("/update-status-inactive", ids);
   }
   /**
@@ -67,7 +67,7 @@ export class ShiftService implements BaseService<Shift> {
    * @param ids
    * @returns {Promise<void>}
    */
-  async delete(ids: Array<string>): Promise<Response<null>> {
+  async delete(ids: Set<string>): Promise<Response<null>> {
     return await shiftApi.deleteMultiple(ids);
   }
 }

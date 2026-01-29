@@ -10,7 +10,7 @@ class ShiftApi extends BaseApi {
    * @param {Array<string>} ids - Danh sách id ca.
    * @returns {Promise<*>} Promise kết quả cập nhật.
    */
-  updateStatus(url: string, ids: Array<string>): Promise<any> {
+  updateStatus(url: string, ids: Set<string>): Promise<any> {
     const formData = new FormData();
 
     ids.forEach((id) => {

@@ -42,7 +42,7 @@ class BaseApi {
    * @param {string} url - The endpoint URL.
    * @returns {Promise<any>} - The response data.
    **/
-  async deleteMultiple(ids: Array<string>): Promise<any> {
+  async deleteMultiple(ids: Set<string>): Promise<any> {
     const formData = new FormData();
     formData.append("ids", ids as any);
     return this.axios.delete(this.endpoint, { data: formData });
