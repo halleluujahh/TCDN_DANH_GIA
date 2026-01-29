@@ -94,7 +94,6 @@ const emits = defineEmits<TableEmits<Shift>>();
 // ==================PROPS & EMITS END======================
 
 // =====================METHODS START========================
-
 /**
  * Mở modal lọc dữ liệu cho cột
  * @param event
@@ -138,7 +137,6 @@ const handleOpenModalFilterColumn = (
       column.filterType === CONSTANTS.BASE_INPUT_TYPE.TEXT ? 1 : (0 as number),
   });
 };
-
 /**
  * Đóng modal lọc dữ liệu cho cột
  */
@@ -149,7 +147,6 @@ const closeDropdownFilterColumn = () => {
     }
   });
 };
-
 /**
  * Bỏ lọc dữ liệu cho cột
  */
@@ -162,7 +159,6 @@ const removeDropdownFilterColumn = () => {
   });
   emits("filter-change", filterArrayRef.value);
 };
-
 /**
  * Mở modal nhóm tùy chọn cho cột
  * @param event
@@ -197,7 +193,6 @@ const handleOpenComboboxGroupOptionColumn = (
     style: calculatePositionMenu(event) as Record<string, string>,
   });
 };
-
 /**
  * Đóng select box sắp xếp cho cột
  */
@@ -208,7 +203,6 @@ const closeSortColumn = () => {
     }
   });
 };
-
 /**
  * Hàm lọc dữ liệu theo cột
  */
@@ -267,12 +261,14 @@ const sortRef = computed<ColumnSort>(
 );
 /**
  * Các cột trong bảng được sắp xếp theo vị trí
+ * @return TableColumn<Shift>[]
  */
 const columnSortedByPosition = computed<TableColumn<Shift>[]>(() => {
   return columnSortedByPositionFunc(columns.value);
 });
 /**
  * Các hàng trong bảng được sắp xếp theo vị trí cột
+ * @return TableRow<Shift>[]
  */
 const rowDataItemsSortedByPosition = computed<TableRow<Shift>[]>(() => {
   return rowSortedByColumnPositionFunc(columnSortedByPosition.value);

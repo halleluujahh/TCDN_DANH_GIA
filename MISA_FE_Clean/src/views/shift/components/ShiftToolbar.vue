@@ -39,6 +39,7 @@ const searchKeywordRef = ref<string>("");
 // =====================METHODS START========================
 /**
  * Hàm debounce để tìm kiếm
+ * @param value
  */
 const debouncedSearch = debounce((value: string) => {
   emits("changeSearchKeyword", value);
@@ -52,12 +53,19 @@ const handleReloadData = () => {
 };
 /**
  * Lấy tên cột filter để hiển thị
+ * @param filterName
+ * @return string
  */
 const getFilterColumnName = (filterName: string): string => {
   return CONSTANTS.COLUMN_NAME_SHIFT_DISPLAY[
     filterName as keyof typeof CONSTANTS.COLUMN_NAME_SHIFT_DISPLAY
   ];
 };
+/**
+ * Lấy tên loại filter
+ * @param filter 
+ * @return string
+ */
 const getFilterType = (filter: any): string => {
   if (filter.filterColumnType !== undefined) {
     return CONSTANTS.FILTER_COLUMN_TYPE_TEXT[
@@ -74,18 +82,21 @@ const getFilterType = (filter: any): string => {
 // =====================COMPUTED START=====================
 /**
  * Kiểm tra có bất kỳ item nào được chọn không
+ * @return boolean
  */
 const isAnySelection = computed<boolean>(() => {
   return (props.idsSelected?.size || 0) > 0;
 });
 /**
  * Số lượng item đã chọn
+ * @return number
  */
 const selectedCount = computed<number>(() => {
   return props.idsSelected?.size || 0;
 });
 /**
  * Kiểm tra có bất kỳ item nào được chọn có trạng thái Active không
+ * @return boolean
  */
 const isAnyStatusActiveSelected = computed<boolean>(() => {
   if (!props.idsSelected) return false;
@@ -102,6 +113,7 @@ const isAnyStatusActiveSelected = computed<boolean>(() => {
 });
 /**
  * Kiểm tra có bất kỳ item nào được chọn có trạng thái Inactive không
+ * @return boolean
  */
 const isAnyStatusInactiveSelected = computed<boolean>(() => {
   return props.rows.some((row: TableRow<Shift>) => {
@@ -117,6 +129,7 @@ const isAnyStatusInactiveSelected = computed<boolean>(() => {
 });
 /**
  * Kiểm tra có bất kỳ filter nào được áp dụng không
+ * @return boolean
  */
 const isAnyFilter = computed<boolean>(() => {
   if (!props.filterDTO?.filterByShiftColumn) return false;
@@ -129,6 +142,7 @@ const isAnyFilter = computed<boolean>(() => {
 
 /**
  * Watch từ khóa tìm kiếm và phát sự kiện lên cha
+ * @param newVal
  */
 watch(searchKeywordRef, (newVal) => {
   debouncedSearch(newVal);

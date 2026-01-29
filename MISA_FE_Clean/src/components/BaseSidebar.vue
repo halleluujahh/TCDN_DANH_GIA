@@ -1,7 +1,7 @@
-<script setup>
+<script setup lang="ts">
+//@ts-ignore
+import { ref, defineProps } from "vue";
 import { cloneDeep } from "lodash";
-import { ref } from "vue";
-import { useAppStore } from "../stores/app-store";
 
 /**
  * BaseSidebar Component - Sidebar menu với nested submenu hỗ trợ popup
@@ -9,7 +9,7 @@ import { useAppStore } from "../stores/app-store";
  * Tự động quản lý trạng thái mở/đóng menu và positioning popup
  * Created By hanv 20/01/2026
  */
-const appStore = useAppStore();
+
 /**
  * @typedef {Object} MenuItem
  * @property {{ url: string, position: { x: number, y: number } }} icon
@@ -75,22 +75,69 @@ const appStore = useAppStore();
  *   route: string
  * }[]} popupMenuItemsList
  */
+interface PopupMenuGroup {
+  popupMenuItemsHeader: string | null;
+  popupMenuItemsList: Array<{
+    title: string;
+    route: string;
+  }>;
+}
 
+interface PopupMenu {
+  isOpen: boolean;
+  popupMenuItemRouter: string | null;
+  style: { top: string; left: string };
+  popupMenuItems: PopupMenuGroup[];
+}
+
+interface SubMenuItem {
+  title: string;
+  route: string | null;
+  popupMenu?: PopupMenu;
+}
+
+interface SubMenu {
+  isOpen: boolean;
+  style: { top: string; left: string };
+  subMenuItems: SubMenuItem[];
+}
+
+interface PopupMenuOutside {
+  isOpen: boolean;
+  style: { top: string; left: string };
+  popupMenuItems: PopupMenuGroup[];
+}
+
+interface MenuItem {
+  icon: { url: string; position: { x: number; y: number } };
+  title: string;
+  route: string | null;
+  subMenu: SubMenu | null;
+  isMenuItemLine: boolean;
+  isActive: boolean;
+  popupMenuOutside?: PopupMenuOutside;
+}
+
+interface BaseSideBarProps {
+  menuItems?: MenuItem[];
+  sidebarCollapsed?: boolean;
+}
+const props = defineProps<BaseSideBarProps>();
 /**
  * Danh sách menu items
  * @type {Array<MenuItem>}
  */
-const menuItemsClone = ref(cloneDeep(appStore.sidebarItems));
+const menuItemsClone = ref<MenuItem[] | undefined>(cloneDeep(props.menuItems));
 
-const closeTimer = ref({});
-const closeTimersInside = ref({});
+const closeTimer = ref<Record<string, ReturnType<typeof setTimeout>>>({});
+const closeTimersInside = ref<Record<string, ReturnType<typeof setTimeout>>>({});
 const oldIndex = ref(-1);
 const oldSubIndex = ref(-1);
 
 const currentItemChoosed = ref({
   index: -1,
   subindex: -1,
-  route: null,
+  route: null as string | null,
 });
 
 /**
@@ -98,8 +145,9 @@ const currentItemChoosed = ref({
  * Created By hanv 20/01/2026
  */
 function unactiveAllMenuItems() {
+  if (!menuItemsClone.value) return;
   // Đóng tất cả submenu item khác
-  menuItemsClone.value.forEach((item, i) => {
+  menuItemsClone.value.forEach((item: MenuItem) => {
     item.isActive = false;
     if (item.subMenu) {
       item.subMenu.isOpen = false;
@@ -115,10 +163,11 @@ function unactiveAllMenuItems() {
  * @param {Number} index - Index của menu item cần giữ active
  * Created By hanv 20/01/2026
  */
-function unactiveAllMenuItemsExceptCurrent(index) {
+function unactiveAllMenuItemsExceptCurrent(index: number) {
+  if (!menuItemsClone.value) return;
   // Đóng tất cả menu item khác trừ cái submenu hiện tại
-  menuItemsClone.value.forEach((item, i) => {
-    if (i !== index) {
+  menuItemsClone.value.forEach((item: MenuItem, idx: number) => {
+    if (idx !== index) {
       item.isActive = false;
       if (item.subMenu) {
         item.subMenu.isOpen = false;
@@ -133,7 +182,9 @@ function unactiveAllMenuItemsExceptCurrent(index) {
  * @param {Number} subIndex - Index của submenu item (default: -1)
  * Created By hanv 20/01/2026
  */
-function closePopupBefore(index, subIndex = -1) {
+function closePopupBefore(index: number, subIndex: number = -1) {
+  if (!menuItemsClone.value) return;
+
   // Đóng popup menu trước nếu có
   if (oldIndex.value >= 1 && oldIndex.value !== index) {
     if (
@@ -141,20 +192,32 @@ function closePopupBefore(index, subIndex = -1) {
         oldSubIndex.value
       ]?.popupMenu !== undefined
     ) {
-      menuItemsClone.value[oldIndex.value].subMenu.subMenuItems[
-        oldSubIndex.value
-      ].popupMenu.isOpen = false;
+      const subMenu = menuItemsClone.value[oldIndex.value]?.subMenu;
+      const subMenuItem = subMenu?.subMenuItems?.[oldSubIndex.value];
+      if (subMenuItem?.popupMenu) {
+        subMenuItem.popupMenu.isOpen = false;
+      }
     }
-    if (menuItemsClone.value[oldIndex.value]?.popupMenuOutside !== undefined) {
-      menuItemsClone.value[oldIndex.value].popupMenuOutside.isOpen = false;
+    if (
+      menuItemsClone.value[oldIndex.value] &&
+      menuItemsClone.value[oldIndex.value]?.popupMenuOutside !== undefined &&
+      menuItemsClone.value[oldIndex.value]?.popupMenuOutside !== null
+    ) {
+      const popupMenuOutside = menuItemsClone.value[oldIndex.value]?.popupMenuOutside;
+      if (popupMenuOutside) {
+        popupMenuOutside.isOpen = false;
+      }
     }
     // Đóng submenu nếu sidebar đang thu gọn
     if (
       menuItemsClone.value[oldIndex.value]?.subMenu !== null &&
       menuItemsClone.value[oldIndex.value]?.subMenu !== undefined &&
-      appStore.sidebarCollapsed
+      props.sidebarCollapsed
     ) {
-      menuItemsClone.value[oldIndex.value].subMenu.isOpen = false;
+      const subMenu = menuItemsClone.value[oldIndex.value]?.subMenu;
+      if (subMenu) {
+        subMenu.isOpen = false;
+      }
     }
   }
   oldIndex.value = index;
@@ -166,52 +229,54 @@ function closePopupBefore(index, subIndex = -1) {
  * @param {Number} index - Index của menu item
  * Created By hanv 20/01/2026
  */
-function toggleSubMenuItem(index) {
+function toggleSubMenuItem(index: number) {
+  if (!menuItemsClone.value) return;
+  const item = menuItemsClone.value[index];
+  if (!item) return;
+
   // Nếu có popupMenuOutside thì không làm gì cả
-  if (menuItemsClone.value[index].popupMenuOutside !== undefined) {
+  if (item.popupMenuOutside !== undefined) {
     return;
   }
 
-  if (
-    menuItemsClone.value[index].subMenu !== undefined &&
-    menuItemsClone.value[index].subMenu !== null
-  ) {
-    menuItemsClone.value[index].subMenu.isOpen =
-      !menuItemsClone.value[index].subMenu.isOpen;
+  if (item.subMenu !== undefined && item.subMenu !== null) {
+    item.subMenu.isOpen = !item.subMenu.isOpen;
   }
 
   // Đóng tất cả menu item khác trừ cái hiện tại
   unactiveAllMenuItemsExceptCurrent(index);
 
-  menuItemsClone.value[index].isActive = true;
+  item.isActive = true;
 }
-function onMouseEnterSubMenu(e, index) {
+function onMouseEnterSubMenu(e: MouseEvent, index: number) {
+  if (!menuItemsClone.value) return;
+  
   // Xóa timer đóng popup menu nếu có
   const key = `${index}`;
-
   if (closeTimer.value[key]) {
     clearTimeout(closeTimer.value[key]);
   }
+
+  const item = menuItemsClone.value[index];
+  if (!item) return;
+
   // Nếu không có submenu thì không làm gì cả
-  if (
-    menuItemsClone.value[index].subMenu === undefined ||
-    menuItemsClone.value[index].subMenu === null
-  )
-    return;
+  if (item.subMenu === undefined || item.subMenu === null) return;
 
   // Đóng popup menu trước nếu có
   closePopupBefore(index);
 
   // Mở submenu hiện tại
-  menuItemsClone.value[index].subMenu.isOpen = true;
+  item.subMenu.isOpen = true;
 
   // Kiểm tra nếu không phải menu-item-admin thì không tính toán vị trí
-  if (!e.currentTarget.classList.contains("menu-item-admin")) {
+  const currentTarget = e.currentTarget as HTMLElement;
+  if (!currentTarget.classList.contains("menu-item-admin")) {
     return;
   }
 
   // Lấy vị trí của phần tử hiện tại
-  const rect = e.currentTarget.getBoundingClientRect();
+  const rect = currentTarget.getBoundingClientRect();
   // Tính toán vị trí cho popup menu
   const margin = 8;
   const gap = 25;
@@ -222,46 +287,50 @@ function onMouseEnterSubMenu(e, index) {
   if (top + popupHeight > window.innerHeight) {
     top = window.innerHeight - popupHeight - margin;
   }
-  menuItemsClone.value[index].subMenu.style = {
+  item.subMenu.style = {
     top: `${top}px`,
     left: `${left}px`,
   };
 }
-function onMouseLeaveSubMenu(e, index) {
+function onMouseLeaveSubMenu(_e: MouseEvent, index: number) {
+  if (!menuItemsClone.value) return;
+
   // Thiết lập timer đóng outside popup menu
   const key = `${index}`;
+  const item = menuItemsClone.value[index];
 
   closeTimer.value[key] = setTimeout(() => {
-    if (
-      menuItemsClone.value[index].subMenu === undefined ||
-      menuItemsClone.value[index].subMenu === null
-    )
-      return;
-    menuItemsClone.value[index].subMenu.isOpen = false;
+    if (item?.subMenu === undefined || item?.subMenu === null) return;
+    item.subMenu.isOpen = false;
   }, 1000);
 }
-function onMouseEnterPopupMenuOutside(e, index) {
+function onMouseEnterPopupMenuOutside(e: MouseEvent, index: number) {
+  if (!menuItemsClone.value) return;
+
   // Xóa timer đóng popup menu nếu có
   const key = `${index}`;
-
   if (closeTimer.value[key]) {
     clearTimeout(closeTimer.value[key]);
   }
 
-  if (menuItemsClone.value[index].popupMenuOutside === undefined) return;
+  const item = menuItemsClone.value[index];
+  if (!item) return;
+
+  if (item.popupMenuOutside === undefined) return;
 
   // Đóng popup menu trước nếu có
   closePopupBefore(index);
 
   //  Mở popup menu hiện tại
-  menuItemsClone.value[index].popupMenuOutside.isOpen = true;
+  item.popupMenuOutside.isOpen = true;
 
   // Kiểm tra nếu không phải menu-item-admin thì không tính toán vị trí
-  if (!e.currentTarget.classList.contains("menu-item-admin")) {
+  const currentTarget = e.currentTarget as HTMLElement;
+  if (!currentTarget.classList.contains("menu-item-admin")) {
     return;
   }
   // Lấy vị trí của phần tử hiện tại
-  const rect = e.currentTarget.getBoundingClientRect();
+  const rect = currentTarget.getBoundingClientRect();
   // Tính toán vị trí cho popup menu
   const margin = 8;
   const gap = 25;
@@ -272,54 +341,60 @@ function onMouseEnterPopupMenuOutside(e, index) {
   if (top + popupHeight > window.innerHeight) {
     top = window.innerHeight - popupHeight - margin;
   }
-  menuItemsClone.value[index].popupMenuOutside.style = {
+  item.popupMenuOutside.style = {
     top: `${top}px`,
     left: `${left}px`,
   };
 }
-function onMouseLeavePopupMenuOutside(e, index) {
+function onMouseLeavePopupMenuOutside(_e: MouseEvent, index: number) {
+  if (!menuItemsClone.value) return;
+
   // Thiết lập timer đóng outside popup menu
   const key = `${index}`;
+  const item = menuItemsClone.value[index];
 
   closeTimer.value[key] = setTimeout(() => {
-    if (menuItemsClone.value[index].popupMenuOutside === undefined) return;
-    menuItemsClone.value[index].popupMenuOutside.isOpen = false;
+    if (item?.popupMenuOutside === undefined) return;
+    if (item?.popupMenuOutside) {
+      item.popupMenuOutside.isOpen = false;
+    }
   }, 1000);
 }
-function onMouseEnterPopupMenuInside(e, index, subIndex) {
+function onMouseEnterPopupMenuInside(e: MouseEvent, index: number, subIndex: number) {
+  if (!menuItemsClone.value) return;
+
   // Xóa timer đóng inside popup menu nếu có
   const key = `${index}-${subIndex}`;
-
-  if (closeTimersInside[key]) {
-    clearTimeout(closeTimersInside[key]);
+  if (closeTimersInside.value[key]) {
+    clearTimeout(closeTimersInside.value[key]);
   }
 
-  if (
-    menuItemsClone.value[index].subMenu.subMenuItems[subIndex].popupMenu ===
-    undefined
-  )
-    return;
+  const item = menuItemsClone.value[index];
+  if (!item?.subMenu?.subMenuItems[subIndex]?.popupMenu) return;
+
+  const popupMenu = item.subMenu.subMenuItems[subIndex].popupMenu;
+  if (!popupMenu) return;
 
   // Đóng popup menu trước nếu có
   closePopupBefore(index, subIndex);
 
   // Mở popup menu hiện tại
-  menuItemsClone.value[index].subMenu.subMenuItems[subIndex].popupMenu.isOpen =
-    true;
+  popupMenu.isOpen = true;
 
   // Kiểm tra nếu không phải menu-item-admin thì không tính toán vị trí
-  if (!e.currentTarget.classList.contains("menu-item-admin")) {
+  const currentTarget = e.currentTarget as HTMLElement;
+  if (!currentTarget.classList.contains("menu-item-admin")) {
     return;
   }
   // Lấy vị trí của phần tử hiện tại
-  const rect = e.currentTarget.getBoundingClientRect();
+  const rect = currentTarget.getBoundingClientRect();
 
   // Tính toán vị trí cho popup menu
   const margin = 8;
   const gap = 25;
   const popupHeight = 190;
 
-  const style = {
+  const style: { left: string; top?: string; bottom?: string } = {
     left: `${rect.left + rect.width + gap}px`,
   };
 
@@ -332,55 +407,51 @@ function onMouseEnterPopupMenuInside(e, index, subIndex) {
     style.bottom = "auto";
   }
 
-  menuItemsClone.value[index].subMenu.subMenuItems[subIndex].popupMenu.style =
-    style;
+  popupMenu.style = style as { top: string; left: string };
 }
-function onMouseLeavePopupMenuInside(e, index, subIndex) {
+function onMouseLeavePopupMenuInside(_e: MouseEvent, index: number, subIndex: number) {
+  if (!menuItemsClone.value) return;
+
   // Thiết lập timer đóng inside popup menu
   const key = `${index}-${subIndex}`;
+  const item = menuItemsClone.value[index];
 
-  closeTimersInside[key] = setTimeout(() => {
-    if (
-      menuItemsClone.value[index].subMenu.subMenuItems[subIndex].popupMenu ===
-      undefined
-    )
-      return;
-    menuItemsClone.value[index].subMenu.subMenuItems[
-      subIndex
-    ].popupMenu.isOpen = false;
+  closeTimersInside.value[key] = setTimeout(() => {
+    const popupMenu = item?.subMenu?.subMenuItems?.[subIndex]?.popupMenu;
+    if (!popupMenu) return;
+    popupMenu.isOpen = false;
   }, 1000);
 }
-function isActive(index, subIndex, route) {
+function isActive(index: number, subIndex: number, route: string | null) {
+  if (!menuItemsClone.value) return;
+
   unactiveAllMenuItemsExceptCurrent(index);
 
   currentItemChoosed.value.index = index;
   currentItemChoosed.value.subindex = subIndex;
   currentItemChoosed.value.route = route;
 
+  const item = menuItemsClone.value[index];
+  if (!item) return;
+
   // Mở submenu nếu có
-  if (
-    menuItemsClone.value[index].subMenu !== null &&
-    menuItemsClone.value[index].subMenu !== undefined
-  ) {
-    !appStore.sidebarCollapsed
-      ? (menuItemsClone.value[index].subMenu.isOpen = true)
-      : (menuItemsClone.value[index].subMenu.isOpen = false);
+  if (item.subMenu !== null && item.subMenu !== undefined) {
+    item.subMenu.isOpen = !props.sidebarCollapsed;
   }
 
   // Gán route cho menu item được active
   if (subIndex < 0) {
-    menuItemsClone.value[index].isActive = true;
+    item.isActive = true;
     return;
   }
 
-  menuItemsClone.value[index].subMenu.subMenuItems[
-    subIndex
-  ].popupMenu.popupMenuItemRouter = route;
+  const subMenuItem = item.subMenu?.subMenuItems?.[subIndex];
+  if (subMenuItem?.popupMenu) {
+    subMenuItem.popupMenu.popupMenuItemRouter = route;
+  }
 }
 function toggleCollapse() {
   unactiveAllMenuItems();
-  // Thay đổi trạng thái thu gọn sidebar
-  appStore.toggleSidebar();
   // Cập nhật lại trạng thái isActive của menu items
   isActive(
     currentItemChoosed.value.index,
@@ -397,36 +468,36 @@ function toggleCollapse() {
         :class="[
           'left-container',
           'flex',
-          appStore.sidebarCollapsed ? 'collapsed' : '',
+          props.sidebarCollapsed ? 'collapsed' : '',
         ]"
       >
         <div
-          :class="['menu-container', appStore.sidebarCollapsed ? '' : 'w200']"
+          :class="['menu-container', props.sidebarCollapsed ? '' : 'w200']"
         >
           <div class="menu-item-wapper">
             <div
               :class="[
                 'menu-item-container',
-                appStore.sidebarCollapsed ? 'collapsed' : 'w200',
+                props.sidebarCollapsed ? 'collapsed' : 'w200',
               ]"
             >
               <router-link
                 :class="['w-full', 'block']"
                 v-for="(item, index) in menuItemsClone"
                 :key="index"
-                :to="item.route === null ? $route.path : item.route"
-                v-tooltip="appStore.sidebarCollapsed ? item.title : ''"
+                :to="item.route || $route.path"
+                v-tooltip="props.sidebarCollapsed ? item.title : ''"
               >
                 <div
                   :class="['menu-item-admin', item.isActive ? 'active' : '']"
                   v-on:mouseenter="
-                    appStore.sidebarCollapsed &&
+                    props.sidebarCollapsed &&
                     item.popupMenuOutside === undefined
                       ? onMouseEnterSubMenu($event, index)
                       : onMouseEnterPopupMenuOutside($event, index)
                   "
                   v-on:mouseleave="
-                    appStore.sidebarCollapsed &&
+                    props.sidebarCollapsed &&
                     item.popupMenuOutside === undefined
                       ? onMouseLeaveSubMenu($event, index)
                       : onMouseLeavePopupMenuOutside($event, index)
@@ -449,13 +520,13 @@ function toggleCollapse() {
                     ></div>
                   </div>
                   <div
-                    v-if="!appStore.sidebarCollapsed"
+                    v-if="!props.sidebarCollapsed"
                     class="menu-item-title"
                   >
                     {{ item.title }}
                   </div>
                   <div
-                    v-if="!appStore.sidebarCollapsed"
+                    v-if="!props.sidebarCollapsed"
                     class="flex flex-end flex-1 pr-8px"
                   >
                     <div
@@ -492,7 +563,7 @@ function toggleCollapse() {
                 <div
                   v-if="
                     item.popupMenuOutside === undefined &&
-                    appStore.sidebarCollapsed &&
+                    props.sidebarCollapsed &&
                     item.subMenu !== null &&
                     item.subMenu.isOpen === true
                   "
@@ -513,7 +584,7 @@ function toggleCollapse() {
                         ]"
                         v-for="(subItem, subIndex) in item.subMenu.subMenuItems"
                         :key="subIndex"
-                        :to="subItem.route"
+                        :to="subItem.route || $route.path"
                         v-on:click="isActive(index, -1, subItem.route)"
                       >
                         <div class="sub-nav-item__text">
@@ -589,7 +660,7 @@ function toggleCollapse() {
                     v-if="
                       item.subMenu !== null &&
                       item.subMenu.isOpen === true &&
-                      appStore.sidebarCollapsed === false
+                      props.sidebarCollapsed === false
                     "
                     class="sub-menu-inside"
                   >
@@ -663,7 +734,7 @@ function toggleCollapse() {
                             'text-left',
                             { active: $route.path === subItem.route },
                           ]"
-                          :to="subItem.route"
+                          :to="subItem.route || $route.path"
                           v-on:click="isActive(index, -1, subItem.route)"
                         >
                           <div class="menu-item-title pl-12px">
@@ -759,7 +830,7 @@ function toggleCollapse() {
                   v-if="item.isMenuItemLine === true"
                   :class="[
                     'menu-item-line',
-                    appStore.sidebarCollapsed ? 'collapsed' : '',
+                    props.sidebarCollapsed ? 'collapsed' : '',
                   ]"
                 ></div>
               </router-link>
@@ -767,19 +838,19 @@ function toggleCollapse() {
             <div
               :class="[
                 'btn-collapse-footer',
-                appStore.sidebarCollapsed ? 'collapsed' : '',
+                props.sidebarCollapsed ? 'collapsed' : '',
               ]"
             >
               <div class="btn-collapse" v-on:click="toggleCollapse">
                 <div
                   :class="[
-                    appStore.sidebarCollapsed
+                    props.sidebarCollapsed
                       ? 'expanded-icon'
                       : 'collapse-icon',
                     'icon20',
                   ]"
                 ></div>
-                <div class="ml-8px" v-if="!appStore.sidebarCollapsed">
+                <div class="ml-8px" v-if="!props.sidebarCollapsed">
                   Thu gọn
                 </div>
               </div>
