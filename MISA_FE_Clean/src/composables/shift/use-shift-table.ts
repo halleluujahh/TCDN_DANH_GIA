@@ -225,6 +225,7 @@ export const useShiftTable = () => {
             item.filterOption.length > 5 ? undefined : item.filterTypeSearch,
           dateFilterColumnType:
             item.filterOption.length > 5 ? item.filterTypeSearch : undefined,
+          isSaved: true,
         });
       }
     });

@@ -164,6 +164,19 @@ const handleReloadData = () => {
     filterByShiftColumn: [],
   };
 };
+/**
+ * Xử lý khi xóa điều kiện lọc
+ * @param index
+ */
+const handleRemoveFilter = (index: number) => {
+  filterDTORef.value.filterByShiftColumn.splice(index, 1);
+};
+/**
+ * Xử lý khi xóa tất cả điều kiện lọc
+ */
+const handleRemoveAllFilter = () => {
+  filterDTORef.value.filterByShiftColumn = [];
+};
 // =====================METHODS END========================
 
 // =====================WATCH START=====================
@@ -208,6 +221,8 @@ onMounted(() => {
       @inactive-multiple="handleInactiveMultiple"
       @delete-multiple="handleDeleteMultiple"
       @reload-data="handleReloadData"
+      @remove-condition-filter="handleRemoveFilter"
+      @remove-all-condition-filter="handleRemoveAllFilter"
     />
   </div>
 </template>

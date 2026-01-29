@@ -52,6 +52,8 @@ interface TableEmits<T> {
   (e: "inactiveMultiple"): void;
   (e: "deleteMultiple"): void;
   (e: "reloadData"): void;
+  (e: "removeConditionFilter", index: number): void;
+  (e: "removeAllConditionFilter"): void;
 }
 // =====================TYPE DEFINITIONS END=====================
 
@@ -340,6 +342,8 @@ watch(
           @inactive-multiple="emits('inactiveMultiple')"
           @delete-multiple="emits('deleteMultiple')"
           @reload-data="emits('reloadData')"
+          @remove-condition-filter="emits('removeConditionFilter', $event)"
+          @remove-all-condition-filter="emits('removeAllConditionFilter')"
         />
       </template>
     </BaseTable>

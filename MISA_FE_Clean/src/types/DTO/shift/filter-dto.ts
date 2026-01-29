@@ -6,5 +6,6 @@ export interface FilterDTO {
     sortType?: number;
     filterColumnType?: number;
     dateFilterColumnType?: number;
+    isSaved?: boolean;
   }>;
 }

@@ -25,6 +25,8 @@ interface ShiftToolbarEmits {
   (e: "inactiveMultiple"): void;
   (e: "deleteMultiple"): void;
   (e: "reloadData"): void;
+  (e: "removeConditionFilter", index: number): void;
+  (e: "removeAllConditionFilter"): void;
 }
 const props = defineProps<ShiftToolbarProps>();
 const emits = defineEmits<ShiftToolbarEmits>();
@@ -34,6 +36,7 @@ const emits = defineEmits<ShiftToolbarEmits>();
  */
 const searchKeywordRef = ref<string>("");
 
+// =====================METHODS START========================
 /**
  * Hàm debounce để tìm kiếm
  */
@@ -47,6 +50,28 @@ const handleReloadData = () => {
   searchKeywordRef.value = "";
   emits("reloadData");
 };
+/**
+ * Lấy tên cột filter để hiển thị
+ */
+const getFilterColumnName = (filterName: string): string => {
+  return CONSTANTS.COLUMN_NAME_SHIFT_DISPLAY[
+    filterName as keyof typeof CONSTANTS.COLUMN_NAME_SHIFT_DISPLAY
+  ];
+};
+const getFilterType = (filter: any): string => {
+  if (filter.filterColumnType !== undefined) {
+    return CONSTANTS.FILTER_COLUMN_TYPE_TEXT[
+      filter.filterColumnType as keyof typeof CONSTANTS.FILTER_COLUMN_TYPE_TEXT
+    ];
+  } else {
+    return CONSTANTS.DATE_FILTER_COLUMN_TYPE_TEXT[
+      filter.dateFilterColumnType as keyof typeof CONSTANTS.DATE_FILTER_COLUMN_TYPE_TEXT
+    ];
+  }
+};
+// =====================METHODS END========================
+
+// =====================COMPUTED START=====================
 /**
  * Kiểm tra có bất kỳ item nào được chọn không
  */
@@ -90,6 +115,19 @@ const isAnyStatusInactiveSelected = computed<boolean>(() => {
     return false;
   });
 });
+/**
+ * Kiểm tra có cột trạng thái trong filterDTO không
+ */
+const isStatusField = computed<boolean>(() => {
+  if (!props.filterDTO?.filterByShiftColumn) return false;
+  return props.filterDTO?.filterByShiftColumn.some(
+    (filter: any) =>
+      CONSTANTS.COLUMN_NAME_SHIFT_DISPLAY[
+        filter.name as keyof typeof CONSTANTS.COLUMN_NAME_SHIFT_DISPLAY
+      ] !== undefined,
+  );
+});
+// =====================COMPUTED END=====================
 
 /**
  * Watch từ khóa tìm kiếm và phát sự kiện lên cha
@@ -149,82 +187,43 @@ watch(searchKeywordRef, (newVal) => {
           type="outline-danger"
         />
       </div>
-      <div class="filter-conditions h-full">
+      <div
+        v-if="filterDTO && filterDTO.filterByShiftColumn.length > 0"
+        class="filter-conditions h-full"
+      >
         <!-- Lặp hiển thị các filter đã áp dụng -->
-        <!-- 
-         v-for="(itemHeader, indexHeader) in tableDataClone.header"
-         -->
-        <template>
-          <!-- 
-            v-if="
-              itemHeader.filterTypeAfterSaved !== null &&
-              itemHeader.filterTypeAfterSaved !== undefined &&
-              itemHeader.valueFilterTypeAfterSaved !== null &&
-              itemHeader.valueFilterTypeAfterSaved !== undefined
-            "
-             -->
-          <div class="filter-item">
+        <template v-for="(filter, index) in filterDTO.filterByShiftColumn">
+          <div v-if="filter.isSaved" :key="index" class="filter-item">
             <div class="lable-value-filter">
-              <!-- Hiển thị ở đây -->
-              <!-- {{ itemHeader.text }} -->
-              <span></span>
-              <!-- Đối với trạng thái hiển thị ở đây -->
-              <!-- 
-              {{
-                  itemHeader.typeFilter === CONSTANTS.BASE_INPUT_TYPE.COMBOBOX
-                    ? CONSTANTS.STATUS_SHIFT[
-                        itemHeader.valueFilterTypeAfterSaved
-                      ]
-                    : itemHeader.typeFilter === CONSTANTS.BASE_INPUT_TYPE.DATE
-                      ? CONSTANTS.DATE_FILTER_COLUMN_TYPE_TEXT[
-                          itemHeader.filterTypeAfterSaved
-                        ]
-                      : CONSTANTS.FILTER_COLUMN_TYPE_TEXT[
-                          itemHeader.filterTypeAfterSaved
-                        ]
-                }}
-               -->
-              <div style="color: #009b71"></div>
-              <!-- Còn lại hiển thị ở đây -->
-              <!-- 
-               v-if="
-                  itemHeader.typeFilter !== CONSTANTS.BASE_INPUT_TYPE.COMBOBOX
-                "
-               -->
-              <!-- {{ itemHeader.valueFilterTypeAfterSaved }} -->
-              <span></span>
+              <span>
+                {{ getFilterColumnName(filter.name) }}
+              </span>
+              <!-- Đối với kiểu lọc hiển thị ở đây -->
+              <div style="color: #009b71">
+                {{ getFilterType(filter) }}
+              </div>
+              <!-- Giá trị lọc hiển thị ở đây -->
+              <span>{{ filter.value }}</span>
             </div>
             <!-- Xóa filter ở đây -->
-            <!-- @click="
-                handleEmitActionBtn(
-                  'removeConditionFilter',
-                  null,
-                  indexHeader,
-                  null,
-                  null,
-                )
-              " -->
-            <div class="icon16 pointer icon-close"></div>
+            <div
+              @click="emits('removeConditionFilter', index)"
+              class="icon16 pointer icon-close"
+            ></div>
           </div>
         </template>
         <!-- Xóa tất cả filter ở đây -->
-        <!-- v-if="isShowBtnRemoveAllConditionFilter" -->
-        <!-- @click="
-            handleEmitActionBtn(
-              'removeAllConditionFilter',
-              null,
-              null,
-              null,
-              null,
-            )
-          " -->
-        <!-- Bỏ lọc -->
-        <div class="delete-all-filter"></div>
+        <div
+          v-if="filterDTO"
+          @click="emits('removeAllConditionFilter')"
+          class="delete-all-filter"
+        >
+          Bỏ lọc
+        </div>
       </div>
     </div>
     <!-- Hiển thị khi  -->
-    <!-- v-show="!isAnySelection" -->
-    <div class="action flex-row">
+    <div v-show="!isAnySelection" class="action flex-row">
       <!-- Nút lấy lại dữ liệu -->
       <BaseBtn
         icon="reload"
@@ -275,5 +274,90 @@ watch(searchKeywordRef, (newVal) => {
   z-index: 1;
   column-gap: 8px;
   margin: auto 0 auto auto;
+}
+.condition-container {
+  position: absolute;
+  border: none;
+  z-index: 1002;
+  background: white;
+  min-width: 350px;
+  width: -moz-fit-content;
+  width: fit-content;
+  font-weight: 400;
+  font-size: 13px;
+  border-radius: 4px;
+  box-shadow:
+    0 0 8px #0000001a,
+    0 8px 16px #0000001a;
+}
+.condition-container .column-filter-text {
+  font-weight: 600;
+  font-size: 16px;
+  margin-right: 30px;
+}
+.condition-container .close-condition-btn {
+  position: absolute;
+  right: 0;
+}
+.condition-container .filter-container .view-fitler-text {
+  text-align: left;
+}
+.control-gap-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.condition-container .filter-operator {
+  width: 100%;
+}
+.condition-container .buttons {
+  flex-direction: row-reverse;
+}
+.filter-value .ms-input div {
+  width: 100%;
+}
+.filter-conditions {
+  display: flex;
+  align-items: center;
+  row-gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  margin-right: 8px;
+  max-height: 56px;
+  overflow-y: auto;
+}
+.filter-conditions {
+  margin-bottom: 0;
+}
+.filter-item {
+  max-width: calc(100% - 8px);
+}
+.filter-conditions .filter-item {
+  display: flex;
+  gap: 8px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 4px;
+  position: relative;
+  margin-right: 8px;
+  white-space: normal;
+  align-items: center;
+  background-color: #f3f4f6;
+}
+.filter-conditions .lable-value-filter {
+  display: flex;
+  gap: 8px;
+}
+.filter-conditions .delete-all-filter {
+  display: inline-block;
+  color: #f06666;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.icon-close {
+  mask-image: url("/src/assets/icons/pas.Icon Warehouse-e29a964d.svg");
+  mask-repeat: no-repeat;
+  mask-position: -96px 0px;
+  background-color: #4b5563 !important;
 }
 </style>
