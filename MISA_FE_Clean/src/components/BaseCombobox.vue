@@ -16,7 +16,6 @@ import {
  */
 interface ComboboxProps {
   comboboxItems: Array<any>;
-  typeFilter: string;
   textDisplay: string;
 }
 const modelValue = defineModel<string | number>({ required: true });

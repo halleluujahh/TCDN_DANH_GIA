@@ -216,6 +216,21 @@ const handleFilterByColumn = () => {
   emits("filter-change", filterArrayRef.value);
   closeDropdownFilterColumn();
 };
+/**
+ * Xóa điều kiện lọc tại vị trí index
+ * @param index
+ */
+const handleRemoveConditionFilter = (index: number) => {
+  filterArrayRef.value.splice(index, 1);
+  emits("removeConditionFilter", index);
+};
+/**
+ * Xóa tất cả điều kiện lọc
+ */
+const handleRemoveAllFilter = () => {
+  filterArrayRef.value = [];
+  emits("removeAllConditionFilter");
+};
 // =====================METHODS END========================
 
 // =====================COMPUTED START=====================
@@ -342,8 +357,8 @@ watch(
           @inactive-multiple="emits('inactiveMultiple')"
           @delete-multiple="emits('deleteMultiple')"
           @reload-data="emits('reloadData')"
-          @remove-condition-filter="emits('removeConditionFilter', $event)"
-          @remove-all-condition-filter="emits('removeAllConditionFilter')"
+          @remove-condition-filter="handleRemoveConditionFilter"
+          @remove-all-condition-filter="handleRemoveAllFilter"
         />
       </template>
     </BaseTable>

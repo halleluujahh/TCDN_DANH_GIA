@@ -116,15 +116,13 @@ const isAnyStatusInactiveSelected = computed<boolean>(() => {
   });
 });
 /**
- * Kiểm tra có cột trạng thái trong filterDTO không
+ * Kiểm tra có bất kỳ filter nào được áp dụng không
  */
-const isStatusField = computed<boolean>(() => {
+const isAnyFilter = computed<boolean>(() => {
   if (!props.filterDTO?.filterByShiftColumn) return false;
   return props.filterDTO?.filterByShiftColumn.some(
     (filter: any) =>
-      CONSTANTS.COLUMN_NAME_SHIFT_DISPLAY[
-        filter.name as keyof typeof CONSTANTS.COLUMN_NAME_SHIFT_DISPLAY
-      ] !== undefined,
+      filter.isSaved && filter.value !== null && filter.value !== "",
   );
 });
 // =====================COMPUTED END=====================
@@ -214,7 +212,7 @@ watch(searchKeywordRef, (newVal) => {
         </template>
         <!-- Xóa tất cả filter ở đây -->
         <div
-          v-if="filterDTO"
+          v-if="isAnyFilter"
           @click="emits('removeAllConditionFilter')"
           class="delete-all-filter"
         >
