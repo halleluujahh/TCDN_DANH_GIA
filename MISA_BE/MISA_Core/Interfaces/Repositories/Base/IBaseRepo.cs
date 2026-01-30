@@ -26,7 +26,7 @@ namespace MISA_Core.Interfaces.Repositories.Base
         Task<T> GetByFieldName(object value, string fieldName);
         Task<OperationResult<T>> Save(T item);
         Task<OperationResult<T>> Update(T item);
-        Task<OperationResult<T>> UpdateByFieldName(IEnumerable<Guid> ids, object value, string fieldName);
+        Task<OperationResult<T>> UpdateFieldNameByIds(IEnumerable<Guid> ids, object value, string fieldName);
         Task<OperationResult<T>> DeleteByIds(IEnumerable<Guid> ids);
     }
 }

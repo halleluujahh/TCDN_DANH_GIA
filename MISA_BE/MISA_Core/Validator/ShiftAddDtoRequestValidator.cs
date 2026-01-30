@@ -31,9 +31,23 @@ namespace MISA_Core.Validator
             RuleFor(x => x.ShiftName).NotEmpty().WithMessage("Tên ca không được để trống.")
                 .MaximumLength(50).WithMessage("Mã ca tối đa 50 ký tự.");
             RuleFor(x => x.ShiftBeginTime).NotEmpty().WithMessage("Giờ vào ca không được để trống.")
-                .MaximumLength(5).WithMessage("Giờ vào ca tối đa 5 ký tự");
+                .MaximumLength(5).WithMessage("Giờ vào ca tối đa 5 ký tự")
+                .NotEqual(x => x.ShiftEndTime).WithMessage("Giờ hết ca không được bằng giờ vào ca");
             RuleFor(x => x.ShiftEndTime).NotEmpty().WithMessage("Giờ hết ca không được để trống.")
-                .MaximumLength(5).WithMessage("Giờ hết ca tối đa 5 ký tự");
+                .MaximumLength(5).WithMessage("Giờ hết ca tối đa 5 ký tự")
+                .NotEqual(x => x.ShiftBeginTime).WithMessage("Giờ hết ca không được bằng giờ vào ca");
+            RuleFor(x => x.ShiftBeginBreakTime)
+                .NotEqual(x => x.ShiftEndBreakTime).WithMessage("Kết thúc nghỉ giữa ca không được bằng Bắt đầu nghỉ giữa ca")
+                .GreaterThanOrEqualTo(x => x.ShiftBeginTime)
+                .WithMessage("Thời gian bắt đầu nghỉ giữa ca phải nằm trong khoảng thời gian tính từ giờ vào ca đến giờ hết ca. Vui lòng kiểm tra lại.")
+                .LessThanOrEqualTo(x => x.ShiftEndTime)
+                .WithMessage("Thời gian bắt đầu nghỉ giữa ca phải nằm trong khoảng thời gian tính từ giờ vào ca đến giờ hết ca. Vui lòng kiểm tra lại.");
+            RuleFor(x => x.ShiftEndBreakTime)
+                .NotEqual(x => x.ShiftBeginBreakTime).WithMessage("Kết thúc nghỉ giữa ca không được bằng Bắt đầu nghỉ giữa ca")
+                .GreaterThanOrEqualTo(x => x.ShiftBeginTime)
+                .WithMessage("Thời gian bắt đầu nghỉ giữa ca phải nằm trong khoảng thời gian tính từ giờ vào ca đến giờ hết ca. Vui lòng kiểm tra lại.")
+                .LessThanOrEqualTo(x => x.ShiftEndTime)
+                .WithMessage("Thời gian kết thúc nghỉ giữa ca phải nằm trong khoảng thời gian tính từ giờ vào ca đến giờ hết ca. Vui lòng kiểm tra lại.");
         }
     }
 }

@@ -277,7 +277,7 @@ namespace MISA_Infrastructure.Repositories.Base
         /// <param name="fieldName">Tên cột cần cập nhật</param>
         /// <returns>OperationResult chứa kết quả cập nhật</returns>
         /// <exception cref="ArgumentException">Khi fieldName không tồn tại trong entity</exception>
-        public async Task<OperationResult<T>> UpdateByFieldName(IEnumerable<Guid> ids, object value, string fieldName)
+        public async Task<OperationResult<T>> UpdateFieldNameByIds(IEnumerable<Guid> ids, object value, string fieldName)
         {
             using (var conn = _databaseConnection.Connection())
             {

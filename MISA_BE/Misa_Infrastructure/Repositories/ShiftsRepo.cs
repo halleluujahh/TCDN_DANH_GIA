@@ -230,18 +230,22 @@ namespace MISA_Infrastructure.Repository
                     if (propInfo == null) continue;
                     selectColumns.Add($"{property} AS {propInfo.Name}");
                 }
-                var sql = $@"SELECT {string.Join(", ", selectColumns)} FROM {_tableName} {whereSql} {orderSql} LIMIT @limit OFFSET @offset";
+                var sql = $@"SELECT {string.Join(", ", selectColumns)} FROM {_tableName} {whereSql} {orderSql} LIMIT @limit OFFSET @offset;
+                             SELECT COUNT(1) FROM {_tableName};";
 
                 param.Add("limit", pageSize);
                 param.Add("offset", currentPage * pageSize);
 
-                var items = await conn.QueryAsync<Shift>(sql, param);
+                using var multi = await conn.QueryMultipleAsync(sql, param);
+                var items = await multi.ReadAsync<Shift>();
+                var totalItem = await multi.ReadSingleAsync<int>();
 
                 return new OperationResult<Shift>
                 {
                     ListData = items,
                     StatusCode = (int)Commons.StatusCode.Success,
-                    IsSuccess = true
+                    IsSuccess = true,
+                    TotalItem = totalItem
                 };
             }
         }

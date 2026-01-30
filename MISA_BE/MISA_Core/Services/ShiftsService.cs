@@ -236,7 +236,7 @@ namespace MISA_Core.Service
                 }
             }
 
-            return await _shiftsRepo.UpdateByFieldName(ids, 1, "shift_status");
+            return await _shiftsRepo.UpdateFieldNameByIds(ids, 1, "shift_status");
         }
         
         /// <summary>
@@ -262,7 +262,7 @@ namespace MISA_Core.Service
                 }
             }
 
-            return await _shiftsRepo.UpdateByFieldName(ids, 0, "shift_status");
+            return await _shiftsRepo.UpdateFieldNameByIds(ids, 0, "shift_status");
         }
 
         /// <summary>
