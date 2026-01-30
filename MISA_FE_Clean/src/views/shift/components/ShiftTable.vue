@@ -35,6 +35,7 @@ interface ShiftTableProps {
   idsSelected?: Set<string>;
   loading?: boolean;
   filterDTO?: FilterDTO;
+  pagination: Pagination;
 }
 interface TableEmits<T> {
   (e: "toggle-check", row: TableRow<T>): void;
@@ -54,6 +55,7 @@ interface TableEmits<T> {
   (e: "reloadData"): void;
   (e: "removeConditionFilter", index: number): void;
   (e: "removeAllConditionFilter"): void;
+  (e: "handleChangeCurrentPage", pageIndex: number): void;
 }
 // =====================TYPE DEFINITIONS END=====================
 
@@ -329,17 +331,19 @@ watch(
 // =====================WATCH END=====================
 </script>
 <template>
-  <div class="body-layout-list">
+   <div class="body-layout-list">
     <!-- ========================TABLE START======================== -->
     <BaseTable
       :columns="columnSortedByPosition"
       :rows="rowDataItemsSortedByPosition"
       :loading="props.loading"
       :ids-selected="props.idsSelected"
+      :pagination="props.pagination"
       @toggle-check="emits('toggle-check', $event)"
       @toggle-check-all="emits('toggle-check-all', $event)"
       @filter-change="handleOpenModalFilterColumn"
       @group-option-change="handleOpenComboboxGroupOptionColumn"
+      @handle-change-current-page="emits('handleChangeCurrentPage', $event)"
     >
       <template #toolbar-grid>
         <ShiftToolbar
@@ -467,4 +471,9 @@ watch(
     <!-- ====================DROPDOWN FILTER COLUMN END==================== -->
   </div>
 </template>
-<style scoped></style>
+<style scoped>
+.body-layout-list {
+    flex: 1;
+    height: 0;
+}
+</style>

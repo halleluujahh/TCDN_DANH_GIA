@@ -1,12 +1,19 @@
 <script setup lang="ts" generic="T">
 import type { TableColumn } from "../types/ui/table-column";
 import type { TableRow } from "../types/ui/table-row";
-import { defineModel } from "vue";
+import { computed, defineModel } from "vue";
+// @ts-ignore
+import BaseCombobox from "./BaseCombobox.vue";
+import type { Pagination } from "../types/ui/pagination";
+import { cloneDeep } from "lodash";
+// @ts-ignore
+import BaseBtn from "./BaseBtn.vue";
 
 interface TableProps<T> {
   columns: TableColumn<T>[];
   rows: TableRow<T>[];
   idsSelected?: Set<string>;
+  pagination: Pagination;
   loading?: boolean;
 }
 
@@ -16,6 +23,7 @@ interface TableEmits<T> {
   (e: "double-click", row: TableRow<T>): void;
   (e: "group-option-change", event: Event, column: TableColumn<T>): void;
   (e: "filter-change", event: Event, column: TableColumn<T>): void;
+  (e: "handleChangeCurrentPage", pageIndex: number): void;
 }
 
 // @ts-ignore
@@ -26,6 +34,7 @@ const emit = defineEmits<TableEmits<T>>();
 /**
  * Kiểm tra một hàng có được chọn hay không
  * @param row
+ * @return boolean
  */
 // @ts-ignore
 const isCheckedRow = (row: TableRow<T>): boolean => {
@@ -37,6 +46,7 @@ const isCheckedRow = (row: TableRow<T>): boolean => {
 
 /**
  * Kiểm tra tất cả các hàng có được chọn hay không
+ * @return boolean
  */
 const isCheckedAll = (): boolean => {
   return props.rows.length > 0 && props.rows.every((row) => isCheckedRow(row));
@@ -62,6 +72,41 @@ const isActive = (row: TableRow<T>, column: TableColumn<T>): string => {
   if (column.type !== "boolean") return "";
   return row.data[column.key] === 1 ? "active" : "inactive";
 };
+
+/**
+ * Tính toán trạng thái vô hiệu hóa nút trang trước
+ * @return boolean
+ */
+const isDisabledPreviousPageBtn = computed<boolean>(() => {
+  return props.pagination.pageIndex === 0;
+});
+/**
+ * Tính toán trạng thái vô hiệu hóa nút trang kế tiếp
+ * @return boolean
+ */
+const isDisabledNextPageBtn = computed<boolean>(() => {
+  if (props.pagination.pageIndex && props.pagination.totalRecords && props.pagination.totalRecords > 0) {
+    return (
+      props.pagination.pageSize * (props.pagination.pageIndex + 1) >=
+      props.pagination.totalRecords
+    );
+  }
+  return false;
+});
+/**
+ * Tính toán số trang trước đó
+ * @return number
+ */
+const calculatePreviousIndexPage = computed<number>(() => {
+  return props.pagination.pageIndex > 0 ? props.pagination.pageIndex - 1 : 0;
+});
+/**
+ * Tính toán số trang kế tiếp
+ * @return number
+ */
+const calculateNextIndexPage = computed<number>(() => {
+  return props.pagination.pageIndex + 1;
+});
 </script>
 
 <template>
@@ -272,16 +317,86 @@ const isActive = (row: TableRow<T>, column: TableColumn<T>): string => {
           />
           <div class="empty-des">Không có dữ liệu</div>
         </div>
+
+        <!-- Pagination Section -->
+        <div class="ms-pagination flex-row table-paging">
+          <div class="flex total-count">
+            <div class="total-label">Tổng số:</div>
+            <div class="total">
+              {{ rows.length || 0 }}
+            </div>
+          </div>
+          <div class="pagination-sticky">
+            <div class="flex items-center gap-x-4">
+              <div class="page-size-component-title">Số dòng/trang</div>
+              <div class="page-size-component">
+                <base-combobox
+                  :tooltipText="String(props.pagination.pageSize)"
+                  :textDisplay="String(props.pagination.pageSize)"
+                  :combobox-items="props.pagination.itemPerPageOptions || []"
+                  v-model="props.pagination.pageSize"
+                />
+              </div>
+              <div class="page-info">
+                1 - {{ props.pagination.pageSize || 10 }}
+              </div>
+              <div class="btn-next-page">
+                <base-btn
+                  icon="step-backward"
+                  :isHideBorder="true"
+                  :isBtnPagination="true"
+                  :isDisabled="isDisabledPreviousPageBtn"
+                  type="text-neutral"
+                  @click="emit('handleChangeCurrentPage', 0)"
+                />
+                <base-btn
+                  icon="angle-left"
+                  :isHideBorder="true"
+                  :isBtnPagination="true"
+                  :isDisabled="isDisabledPreviousPageBtn"
+                  type="text-neutral"
+                  @click="
+                    emit('handleChangeCurrentPage', calculatePreviousIndexPage)
+                  "
+                />
+                <base-btn
+                  icon="angle-right"
+                  :isHideBorder="true"
+                  :isBtnPagination="true"
+                  :isDisabled="isDisabledNextPageBtn"
+                  type="text-neutral"
+                  @click="
+                    emit('handleChangeCurrentPage', calculateNextIndexPage)
+                  "
+                />
+                <base-btn
+                  icon="step-forward"
+                  :isHideBorder="true"
+                  :isBtnPagination="true"
+                  :isDisabled="
+                    props.pagination.totalPages
+                      ? props.pagination.pageIndex >=
+                        props.pagination.totalPages - 1
+                      : false
+                  "
+                  type="text-neutral"
+                  @click="
+                    emit(
+                      'handleChangeCurrentPage',
+                      (props.pagination.totalPages || 1) - 1,
+                    )
+                  "
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.body-layout-list {
-  flex: 1;
-  height: 0;
-}
 .body-list {
   background-color: #fff;
   border-radius: 4px;

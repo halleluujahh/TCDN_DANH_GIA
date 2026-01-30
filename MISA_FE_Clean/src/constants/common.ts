@@ -108,64 +108,53 @@ export const CONSTANTS = {
   },
   FilterOptionsType: {
     Text: [
-      { text: "Khác", value: 0, isSelected: true },
+      { text: "Khác", value: 0 },
       {
         text: "Chứa",
         value: 1,
-        isSelected: false,
       },
       {
         text: "Không chứa",
         value: 2,
-        isSelected: false,
       },
       {
         text: "Bắt đầu với",
         value: 3,
-        isSelected: false,
       },
       {
         text: "Kết thúc với",
         value: 4,
-        isSelected: false,
       },
     ],
     Date: [
-      { text: "Bằng", value: 0, isSelected: false },
+      { text: "Bằng", value: 0 },
       {
         text: "Khác",
         value: 1,
-        isSelected: true,
       },
       {
         text: "Nhỏ hơn",
         value: 2,
-        isSelected: false,
       },
       {
         text: "Nhỏ hơn hoặc bằng",
         value: 3,
-        isSelected: false,
       },
       {
         text: "Lớn hơn",
         value: 4,
-        isSelected: false,
       },
       {
         text: "Lớn hơn hoặc bằng",
         value: 5,
-        isSelected: false,
       },
       {
         text: "(Trống)",
         value: 6,
-        isSelected: false,
       },
       {
         text: "(Không trống)",
         value: 7,
-        isSelected: false,
       },
     ],
   },

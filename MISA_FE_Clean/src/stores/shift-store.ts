@@ -2,16 +2,21 @@ import { defineStore } from "pinia";
 import type { Shift } from "../types/models/shift/shift";
 import { shiftService } from "../services/shift-service";
 import type { filterDTO } from "../types/DTO/shift/filter-dto";
+import type { set } from "lodash";
 
 const shiftStore = defineStore("shiftStore", {
   state: () => ({
     rows: [] as Shift[],
+    totalItems: 0,
     loading: false,
     error: null as string | null,
   }),
   actions: {
     setRows(rows: Shift[]) {
       this.rows = rows;
+    },
+    setTotalItems(totalItems: number) {
+      this.totalItems = totalItems;
     },
     setLoading(loading: boolean) {
       this.loading = loading;
@@ -42,6 +47,7 @@ const shiftStore = defineStore("shiftStore", {
         this.setLoading(true);
         const response = await shiftService.getAllPagination(params);
         this.setRows(response.listData);
+        this.setTotalItems(response.totalItem);
       } catch (error: any) {
         this.setError(error.message);
       } finally {
@@ -63,6 +69,7 @@ const shiftStore = defineStore("shiftStore", {
         this.setLoading(true);
         const response = await shiftService.getAllPaginationFilter(params);
         this.setRows(response.listData);
+        this.setTotalItems(response.totalItem);
       } catch (error: any) {
         this.setError(error.message);
       } finally {

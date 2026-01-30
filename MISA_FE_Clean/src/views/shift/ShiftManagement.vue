@@ -10,6 +10,9 @@ import type { ColumnFilterModal } from "../../types/ui/column-filter-modal";
 import { useShiftTable } from "../../composables/shift/use-shift-table";
 import type { ColumnSort } from "../../types/ui/column-sort";
 import type { TableColumn } from "../../types/ui/table-column";
+import { log } from "console";
+import BasePageHeader from "../../components/BasePageHeader.vue";
+import BaseBtn from "../../components/BaseBtn.vue";
 
 /**
  * Store ca làm việc
@@ -33,11 +36,29 @@ const idsSelected = ref<Set<string>>(new Set<string>());
 /**
  * Phân trang danh sách ca làm việc
  */
-const pagination = ref<Pagination>({
+const paginationRef = ref<Pagination>({
   pageIndex: 0, // Trang hiện tại
   pageSize: 10, // Số bản ghi trên mỗi trang
   totalRecords: 0, // Tổng số bản ghi
   totalPages: 0, // Tổng số trang
+  itemPerPageOptions: [
+    {
+      text: "10",
+      value: 10,
+    },
+    {
+      text: "20",
+      value: 20,
+    },
+    {
+      text: "50",
+      value: 50,
+    },
+    {
+      text: "100",
+      value: 100,
+    },
+  ], // Các tùy chọn số bản ghi trên mỗi trang
 });
 
 /**
@@ -83,6 +104,10 @@ const getAllShifts = async (pagination: Pagination) => {
     currentPage: pagination.pageIndex,
     pageSize: pagination.pageSize,
   });
+  paginationRef.value.totalRecords = shiftStoreInstance.totalItems;
+  paginationRef.value.totalPages = Math.ceil(
+    paginationRef.value.totalRecords / paginationRef.value.pageSize,
+  );
 };
 /**
  * Gọi API lấy danh sách ca làm việc với bộ lọc
@@ -90,7 +115,10 @@ const getAllShifts = async (pagination: Pagination) => {
  * @param filter
  */
 const getAllShiftsWithFilter = async (
-  pagination: Pagination,
+  pagination: {
+    pageIndex: number;
+    pageSize: number;
+  },
   filter: FilterDTO,
 ) => {
   await shiftStoreInstance.loadShiftsWithFilter({
@@ -98,6 +126,10 @@ const getAllShiftsWithFilter = async (
     pageSize: pagination.pageSize,
     filter: filter || {},
   });
+  paginationRef.value.totalRecords = shiftStoreInstance.totalItems;
+  paginationRef.value.totalPages = Math.ceil(
+    paginationRef.value.totalRecords / paginationRef.value.pageSize,
+  );
 };
 /**
  * Xử lý khi có thay đổi bộ lọc
@@ -157,8 +189,8 @@ const handleDeleteMultiple = () => {
  * Xử lý lấy lại dữ liệu
  */
 const handleReloadData = () => {
-  pagination.value.pageIndex = 0;
-  pagination.value.pageSize = 10;
+  paginationRef.value.pageIndex = 0;
+  paginationRef.value.pageSize = 10;
   filterDTORef.value = {
     searchKeyword: "",
     filterByShiftColumn: [],
@@ -186,7 +218,22 @@ const handleRemoveAllFilter = () => {
 watch(
   () => filterDTORef.value,
   (newFilterDTO) => {
-    getAllShiftsWithFilter(pagination.value, newFilterDTO);
+    getAllShiftsWithFilter(paginationRef.value, newFilterDTO);
+  },
+  {
+    deep: true,
+  },
+);
+/**
+ * Watch thay đổi phân trang
+ */
+watch(
+  () => ({
+    pageIndex: paginationRef.value.pageIndex,
+    pageSize: paginationRef.value.pageSize,
+  }),
+  (newPagination) => {
+    getAllShiftsWithFilter(newPagination, filterDTORef.value);
   },
   {
     deep: true,
@@ -200,17 +247,27 @@ watch(
  */
 onMounted(() => {
   getAllShifts({
-    pageIndex: pagination.value.pageIndex,
-    pageSize: pagination.value.pageSize,
+    pageIndex: paginationRef.value.pageIndex,
+    pageSize: paginationRef.value.pageSize,
   });
 });
 </script>
 <template>
-  <div>
+  <div class="development-page"> 
+    <!-- 
+          @click="handleActionTableBtn('openAddModal')"
+     -->
+    <BasePageHeader title="Ca làm việc">
+      <template #actions>
+        <BaseBtn icon="add-white" text="Thêm" />
+      </template>
+    </BasePageHeader>
+
     <ShiftTable
       :loading="shiftStoreInstance.loading"
       :ids-selected="idsSelected"
       :filterDTO="filterDTORef"
+      :pagination="paginationRef"
       @toggle-check="handleToggleCheck"
       @toggle-check-all="handleToggleCheckAll"
       @filter-change="handleFilterChange"
@@ -223,6 +280,7 @@ onMounted(() => {
       @reload-data="handleReloadData"
       @remove-condition-filter="handleRemoveFilter"
       @remove-all-condition-filter="handleRemoveAllFilter"
+      @handle-change-current-page="paginationRef.pageIndex = $event"
     />
   </div>
 </template>
