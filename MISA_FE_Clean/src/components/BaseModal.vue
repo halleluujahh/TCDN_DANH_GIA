@@ -123,7 +123,7 @@ useShortCut("esc", () => {
                 <div class="title">{{ props.modalTitle }}</div>
               </div>
               <div class="title-right">
-                <slot name="header"></slot>
+                <slot name="buttonHeaderCluster"></slot>
               </div>
             </div>
             <div class="subHeader"></div>

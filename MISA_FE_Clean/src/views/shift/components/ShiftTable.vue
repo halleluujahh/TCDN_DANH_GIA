@@ -56,6 +56,7 @@ interface TableEmits<T> {
   (e: "removeConditionFilter", index: number): void;
   (e: "removeAllConditionFilter"): void;
   (e: "handleChangeCurrentPage", pageIndex: number): void;
+  (e: "openShiftModal"): void;
 }
 // =====================TYPE DEFINITIONS END=====================
 
@@ -331,7 +332,7 @@ watch(
 // =====================WATCH END=====================
 </script>
 <template>
-   <div class="body-layout-list">
+  <div class="body-layout-list">
     <!-- ========================TABLE START======================== -->
     <BaseTable
       :columns="columnSortedByPosition"
@@ -359,6 +360,20 @@ watch(
           @reload-data="emits('reloadData')"
           @remove-condition-filter="handleRemoveConditionFilter"
           @remove-all-condition-filter="handleRemoveAllFilter"
+        />
+      </template>
+      <template #row-actions="{ row }">
+        <BaseBtn
+          icon="pencil"
+          tooltipText="Sửa"
+          :isHideBorder="true"
+          :isBtnActionTable="true"
+          @click="emits('openShiftModal')"
+        />
+        <BaseBtn
+          icon="feature-more-blue"
+          :isHideBorder="true"
+          :isBtnActionTable="true"
         />
       </template>
     </BaseTable>
@@ -473,7 +488,7 @@ watch(
 </template>
 <style scoped>
 .body-layout-list {
-    flex: 1;
-    height: 0;
+  flex: 1;
+  height: 0;
 }
 </style>

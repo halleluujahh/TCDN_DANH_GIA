@@ -258,7 +258,13 @@ const emit = defineEmits(["click"]);
   justify-content: center;
   background-color: #fff;
 }
-.bg-pagination{
+.bg-pagination {
   background: #f3f4f6;
+}
+.icon-close {
+  mask-image: url("../assets/icons/pas.Icon Warehouse-e29a964d.svg");
+  mask-repeat: no-repeat;
+  mask-position: -96px 0px;
+  background-color: #4b5563 !important;
 }
 </style>

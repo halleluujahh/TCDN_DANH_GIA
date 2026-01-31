@@ -85,7 +85,11 @@ const isDisabledPreviousPageBtn = computed<boolean>(() => {
  * @return boolean
  */
 const isDisabledNextPageBtn = computed<boolean>(() => {
-  if (props.pagination.pageIndex && props.pagination.totalRecords && props.pagination.totalRecords > 0) {
+  if (
+    props.pagination.pageIndex &&
+    props.pagination.totalRecords &&
+    props.pagination.totalRecords > 0
+  ) {
     return (
       props.pagination.pageSize * (props.pagination.pageIndex + 1) >=
       props.pagination.totalRecords
@@ -295,7 +299,7 @@ const calculateNextIndexPage = computed<number>(() => {
                       <div class="widget-container">
                         <!-- Emit lên cha row Here -->
                         <!-- :row="" -->
-                        <slot name="row-actions"></slot>
+                        <slot name="row-actions" :row="row"></slot>
                       </div>
                     </td>
                   </tr>

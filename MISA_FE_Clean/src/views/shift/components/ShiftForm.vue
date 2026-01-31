@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import BaseInput from "../../../components/BaseInput.vue";
 import { CONSTANTS } from "../../../constants/common";
+// @ts-ignore
 import { ref } from "vue";
 import type { FormData } from "../../../types/ui/form";
+import BaseTextArea from "../../../components/BaseTextArea.vue";
+import BaseTimePicker from "../../../components/BaseTimePicker.vue";
+import BaseRadioButton from "../../../components/BaseRadioButton.vue";
 
 /**
  * Tham số truyền vào modal
@@ -48,6 +52,8 @@ const modalRef = ref<FormData>({
           type: CONSTANTS.BASE_INPUT_TYPE.TIME_PICKER,
           isRequired: true,
           icon: "ic-time",
+          iconSize: "icon16",
+          pointer: true,
           errorMessage: "",
           value: null,
           action: calculateTimeToHours,
@@ -58,6 +64,8 @@ const modalRef = ref<FormData>({
           type: CONSTANTS.BASE_INPUT_TYPE.TIME_PICKER,
           isRequired: true,
           icon: "ic-time",
+          iconSize: "icon16",
+          pointer: true,
           errorMessage: "",
           value: null,
           action: calculateTimeToHours,
@@ -73,6 +81,8 @@ const modalRef = ref<FormData>({
           type: CONSTANTS.BASE_INPUT_TYPE.TIME_PICKER,
           isRequired: false,
           icon: "ic-time",
+          iconSize: "icon16",
+          pointer: true,
           errorMessage: "",
           value: null,
           action: calculateTimeToHours,
@@ -83,6 +93,8 @@ const modalRef = ref<FormData>({
           type: CONSTANTS.BASE_INPUT_TYPE.TIME_PICKER,
           isRequired: false,
           icon: "ic-time",
+          iconSize: "icon16",
+          pointer: true,
           errorMessage: "",
           value: null,
           action: calculateTimeToHours,
@@ -100,6 +112,7 @@ const modalRef = ref<FormData>({
           isDisabled: true,
           errorMessage: "",
           value: null,
+          isHideTooltip: true,
           action: calculateTimeToHours,
         },
         {
@@ -110,6 +123,7 @@ const modalRef = ref<FormData>({
           isDisabled: true,
           errorMessage: "",
           value: null,
+          isHideTooltip: true,
           action: calculateTimeToHours,
         },
       ],
@@ -124,6 +138,7 @@ const modalRef = ref<FormData>({
           isRequired: false,
           errorMessage: "",
           maxLength: 255,
+          rows: 3,
           value: null,
         },
       ],
@@ -140,37 +155,20 @@ const modalRef = ref<FormData>({
           checkItems: [
             {
               text: CONSTANTS.STATUS_SHIFT[1],
+              value: 1,
               isChecked: true,
             },
             {
               text: CONSTANTS.STATUS_SHIFT[0],
+              value: 0,
               isChecked: false,
             },
           ],
-          errorMessage: "",
           value: null,
         },
       ],
     },
   ],
-});
-
-/**
- *  ID của bản ghi đang được cập nhật
- */
-const idUpdatedRef = ref<number>(0);
-
-/**
- * Cấu hình filter/tìm kiếm cho bảng
- * Quản lý từ khóa tìm kiếm và các điều kiện lọc cột
- * @type {Object} filterRef
- * @property {string} SearchKeyword - Từ khóa tìm kiếm toàn văn
- * @property {Array} FilterByShiftColumn - Danh sách lọc theo cột (Name, Value, FilterType)
- * Created By hanv 20/01/2026
- */
-const filterRef = ref({
-  SearchKeyword: "",
-  FilterByShiftColumn: [],
 });
 
 /**
@@ -276,6 +274,27 @@ function calculateTimeToHours() {
     });
   });
 }
+
+/**
+ * Xử lý khi thay đổi giá trị trạng thái
+ * @param value 
+ */
+const handleChangeValueStatus = (value: any) => {
+  modalRef.value.modalInputFields.forEach((group: any) => {
+    group.formItems.forEach((item: any) => {
+      if (item.field === CONSTANTS.COLUMN_NAME_SHIFT.ShiftStatus) {
+        item.value = value;
+      }
+      item.checkItems?.forEach((checkItem: any) => {
+        if (checkItem.value == value) {
+          checkItem.isChecked = true;
+        } else {
+          checkItem.isChecked = false;
+        }
+      });
+    });
+  });
+};
 </script>
 
 <template>
@@ -307,23 +326,68 @@ function calculateTimeToHours() {
         ]"
         style="height: auto"
       >
-        <div v-if="fieldItems.type === CONSTANTS.BASE_INPUT_TYPE.TEXT">
-          <div class="flex items-center">
-            <label class="label">{{ fieldItems.label }}</label>
-            <div v-show="fieldItems.isRequired" class="ms-required">
-              &nbsp;*
-            </div>
-          </div>
+        <div class="flex items-center">
+          <label class="label">{{ fieldItems.label }}</label>
+          <div v-show="fieldItems.isRequired" class="ms-required">&nbsp;*</div>
+        </div>
+        <template
+          v-if="
+            fieldItems.type === CONSTANTS.BASE_INPUT_TYPE.TEXT ||
+            fieldItems.type === CONSTANTS.BASE_INPUT_TYPE.FLOAT_NUM
+          "
+        >
           <BaseInput
-            :type="fieldItems.type"
+            :fieldName="fieldItems.label"
             :autoComplete="fieldItems.autoComplete"
-            :icon="fieldItems.icon"
+            :tooltip="'Nhập ' + fieldItems.label"
+            :is-hide-tooltip="fieldItems.isHideTooltip"
+            :max-length="fieldItems.maxLength"
+            :disabled="fieldItems.isDisabled"
+            :error="fieldItems.errorMessage"
+            :required="fieldItems.isRequired"
+            v-model="fieldItems.value"
+          />
+        </template>
+        <template
+          v-else-if="fieldItems.type === CONSTANTS.BASE_INPUT_TYPE.TEXTAREA"
+        >
+          <BaseTextArea
+            :fieldName="fieldItems.label"
             :max-length="fieldItems.maxLength"
             :is-disabled="fieldItems.isDisabled"
             :error="fieldItems.errorMessage"
+            :tooltip="'Nhập ' + fieldItems.label"
+            :rows="fieldItems.rows || 3"
             v-model="fieldItems.value"
           />
-        </div>
+        </template>
+        <template
+          v-else-if="fieldItems.type === CONSTANTS.BASE_INPUT_TYPE.TIME_PICKER"
+        >
+          <BaseTimePicker
+            :fieldName="fieldItems.label"
+            :max-length="fieldItems.maxLength"
+            :is-disabled="fieldItems.isDisabled"
+            :error="fieldItems.errorMessage"
+            :tooltip="'Nhập ' + fieldItems.label"
+            :icon="fieldItems.icon"
+            :icon-size="fieldItems.iconSize"
+            :pointer="fieldItems.pointer"
+            :required="fieldItems.isRequired"
+            v-model="fieldItems.value"
+          />
+        </template>
+        <template
+          v-else-if="fieldItems.type === CONSTANTS.BASE_INPUT_TYPE.CHECKBOX"
+        >
+          <BaseRadioButton
+            :fieldName="fieldItems.label"
+            :disabled="fieldItems.isDisabled"
+            :pointer="fieldItems.pointer"
+            :check-items="fieldItems.checkItems || []"
+            @handle-change-value="handleChangeValueStatus"
+          />
+        </template>
       </div>
     </div>
   </div>

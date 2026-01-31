@@ -10,9 +10,10 @@ import type { ColumnFilterModal } from "../../types/ui/column-filter-modal";
 import { useShiftTable } from "../../composables/shift/use-shift-table";
 import type { ColumnSort } from "../../types/ui/column-sort";
 import type { TableColumn } from "../../types/ui/table-column";
-import { log } from "console";
 import BasePageHeader from "../../components/BasePageHeader.vue";
 import BaseBtn from "../../components/BaseBtn.vue";
+import BaseModal from "../../components/BaseModal.vue";
+import ShiftForm from "./components/ShiftForm.vue";
 
 /**
  * Store ca làm việc
@@ -68,6 +69,15 @@ const filterDTORef = ref<FilterDTO>({
   searchKeyword: "",
   filterByShiftColumn: [],
 });
+
+const shiftModalRef = ref({
+  // Thuộc tính modal
+  isClose: true,
+  modalTitle: "Thêm ca làm việc",
+  isDrag: true,
+  style: { width: "680px", touchAction: "none" },
+});
+
 // =====================REACTIVITY END========================
 
 // =====================METHODS START========================
@@ -209,6 +219,9 @@ const handleRemoveFilter = (index: number) => {
 const handleRemoveAllFilter = () => {
   filterDTORef.value.filterByShiftColumn = [];
 };
+const handleOpenModal = () => {
+  shiftModalRef.value.isClose = false;
+};
 // =====================METHODS END========================
 
 // =====================WATCH START=====================
@@ -253,13 +266,13 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div class="development-page"> 
+  <div class="development-page">
     <!-- 
           @click="handleActionTableBtn('openAddModal')"
      -->
     <BasePageHeader title="Ca làm việc">
       <template #actions>
-        <BaseBtn icon="add-white" text="Thêm" />
+        <BaseBtn icon="add-white" text="Thêm" @click="handleOpenModal" />
       </template>
     </BasePageHeader>
 
@@ -282,6 +295,25 @@ onMounted(() => {
       @remove-all-condition-filter="handleRemoveAllFilter"
       @handle-change-current-page="paginationRef.pageIndex = $event"
     />
+
+    <BaseModal
+      :is-close="shiftModalRef.isClose"
+      :modal-title="shiftModalRef.modalTitle"
+      :is-drag="shiftModalRef.isDrag"
+      :style="shiftModalRef.style"
+    >
+      <template #buttonHeaderCluster>
+        <BaseBtn
+          icon="icon-close"
+          :is-hide-border="true"
+          type="outline-neutral"
+          @click="shiftModalRef.isClose = true"
+        ></BaseBtn>
+      </template>
+      <template #content>
+        <ShiftForm />
+      </template>
+    </BaseModal>
   </div>
 </template>
 <style scoped></style>

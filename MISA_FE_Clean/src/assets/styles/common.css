@@ -311,14 +311,12 @@ input:checked ~ .ms-checkbox-wrapper .ms-checkbox-container .ms-checkbox-inner {
   border-radius: 2px;
   transform: rotate(0);
 }
-.shift-detail .container-content .ms-container--timepicker {
+.ms-container--timepicker {
   max-width: 122px !important;
   padding-right: 0 !important;
 }
-.shift-detail .container-content .ms-input--timepicker {
+.ms-input--timepicker {
   width: 78px !important;
-}
-.ms-time-picker .ms-input--timepicker {
   height: 16px;
   border: none;
   width: 100%;

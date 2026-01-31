@@ -7,11 +7,14 @@ interface BaseInputProps {
   fieldName?: string;
   placeholder?: string;
   disabled?: boolean;
+  pointer?: boolean;
   readonly?: boolean;
   required?: boolean;
   maxlength?: number;
   minlength?: number;
   autocomplete?: string;
+  tooltip?: string;
+  isHideTooltip?: boolean;
   // lỗi
   error?: string;
   // icon
@@ -53,9 +56,10 @@ const isHasError = computed(() => {
       'input-container',
       'border',
       isHasError ? 'error' : '',
+      props.pointer ? 'pointer' : '',
       props.disabled ? 'disabled' : '',
     ]"
-    v-tooltip="errorMessage || props.placeholder"
+    v-tooltip="props.isHideTooltip ? '' : errorMessage || props.tooltip"
   >
     <div :class="['flex-1', 'flex']">
       <div
@@ -74,7 +78,8 @@ const isHasError = computed(() => {
         :maxlength="props.maxlength"
         :minlength="props.minlength"
         :placeholder="props.placeholder"
-        class="ms-input-item flex w-100"
+        :disabled="props.disabled"
+        class="ms-input-item w-100"
         v-model="modelValue"
         @blur="props.required && handleBlur($event)"
       />
