@@ -1,18 +1,29 @@
 <script setup lang="ts">
+// @ts-ignore
 import BaseInput from "../../../components/BaseInput.vue";
 import { CONSTANTS } from "../../../constants/common";
 // @ts-ignore
-import { ref } from "vue";
+import { ref, defineExpose } from "vue";
 import type { FormData } from "../../../types/ui/form";
+// @ts-ignore
 import BaseTextArea from "../../../components/BaseTextArea.vue";
+// @ts-ignore
 import BaseTimePicker from "../../../components/BaseTimePicker.vue";
+// @ts-ignore
 import BaseRadioButton from "../../../components/BaseRadioButton.vue";
+import { useShiftForm } from "../../../composables/shift/use-shift-form";
 
 /**
- * Tham số truyền vào modal
+ * Hàm lấy phương thức tính toán thời gian làm việc từ composable useShiftForm
  */
-const modalRef = ref<FormData>({
-  modalInputFields: [
+const { isEmpty, isEqual, isTimeInRange, calcWorkingHours, validateModalForm } =
+  useShiftForm();
+
+/**
+ * Tham số truyền vào form
+ */
+const formRef = ref<FormData>({
+  formInputFields: [
     {
       isFlex: false,
       formItems: [
@@ -56,7 +67,6 @@ const modalRef = ref<FormData>({
           pointer: true,
           errorMessage: "",
           value: null,
-          action: calculateTimeToHours,
         },
         {
           label: "Giờ hết ca",
@@ -68,7 +78,6 @@ const modalRef = ref<FormData>({
           pointer: true,
           errorMessage: "",
           value: null,
-          action: calculateTimeToHours,
         },
       ],
     },
@@ -85,7 +94,6 @@ const modalRef = ref<FormData>({
           pointer: true,
           errorMessage: "",
           value: null,
-          action: calculateTimeToHours,
         },
         {
           label: "Kết thúc nghỉ giữa ca",
@@ -97,7 +105,6 @@ const modalRef = ref<FormData>({
           pointer: true,
           errorMessage: "",
           value: null,
-          action: calculateTimeToHours,
         },
       ],
     },
@@ -113,7 +120,6 @@ const modalRef = ref<FormData>({
           errorMessage: "",
           value: null,
           isHideTooltip: true,
-          action: calculateTimeToHours,
         },
         {
           label: "Thời gian nghỉ giữa ca (giờ)",
@@ -124,7 +130,6 @@ const modalRef = ref<FormData>({
           errorMessage: "",
           value: null,
           isHideTooltip: true,
-          action: calculateTimeToHours,
         },
       ],
     },
@@ -169,6 +174,12 @@ const modalRef = ref<FormData>({
       ],
     },
   ],
+  errorModal: {
+    title: "Cảnh báo!",
+    iconTitle: "danger",
+    iconTooltip: "Đóng (ESC)",
+    message: "",
+  },
 });
 
 /**
@@ -184,12 +195,12 @@ const modalRef = ref<FormData>({
  * Created By hanv 20/01/2026
  */
 const timeRef = ref({
-  shiftBeginTime: null as string | number | null,
-  shiftEndTime: null as string | number | null,
-  shiftBeginBreakTime: null as string | number | null,
-  shiftEndBreakTime: null as string | number | null,
-  shiftBreakingTime: null as string | number | null,
-  shiftWorkingTime: null as string | number | null,
+  shiftBeginTime: null as string | null,
+  shiftEndTime: null as string | null,
+  shiftBeginBreakTime: null as string | null,
+  shiftEndBreakTime: null as string | null,
+  shiftBreakingTime: null as string | null,
+  shiftWorkingTime: null as string | null,
 });
 
 /**
@@ -198,7 +209,7 @@ const timeRef = ref({
  */
 function calculateTimeToHours() {
   // Lấy giá trị thời gian từ các trường trong modal
-  modalRef.value.modalInputFields.forEach((group: any) => {
+  formRef.value.formInputFields.forEach((group: any) => {
     group.formItems.forEach((item: any) => {
       switch (item.field) {
         case CONSTANTS.COLUMN_NAME_SHIFT.ShiftBeginTime:
@@ -221,16 +232,16 @@ function calculateTimeToHours() {
     timeRef.value.shiftBreakingTime = calcWorkingHours(
       timeRef.value.shiftBeginBreakTime,
       timeRef.value.shiftEndBreakTime,
-      null,
+      "",
     );
   }
-  if (
-    idUpdatedRef.value > 0 &&
-    !timeRef.value.shiftBeginBreakTime &&
-    !timeRef.value.shiftEndBreakTime
-  ) {
-    timeRef.value.shiftBreakingTime = "0,00";
-  }
+  // if (
+  //   idUpdatedRef.value > 0 &&
+  //   !timeRef.value.shiftBeginBreakTime &&
+  //   !timeRef.value.shiftEndBreakTime
+  // ) {
+  //   timeRef.value.shiftBreakingTime = "0,00";
+  // }
 
   // Tính toán thời gian làm việc
   if (timeRef.value.shiftBeginTime && timeRef.value.shiftEndTime) {
@@ -241,16 +252,16 @@ function calculateTimeToHours() {
     );
   }
 
-  if (
-    idUpdatedRef.value > 0 &&
-    !timeRef.value.shiftBeginTime &&
-    !timeRef.value.shiftEndTime
-  ) {
-    timeRef.value.shiftWorkingTime = "0,00";
-  }
+  // if (
+  //   idUpdatedRef.value > 0 &&
+  //   !timeRef.value.shiftBeginTime &&
+  //   !timeRef.value.shiftEndTime
+  // ) {
+  //   timeRef.value.shiftWorkingTime = "0,00";
+  // }
 
   // Cập nhật giá trị thời gian làm việc và thời gian nghỉ giữa ca vào modal
-  modalRef.value.modalInputFields.forEach((group: any) => {
+  formRef.value.formInputFields.forEach((group: any) => {
     group.formItems.forEach((item: any) => {
       if (item.field === CONSTANTS.COLUMN_NAME_SHIFT.ShiftBreakingTime) {
         item.value = timeRef.value.shiftBreakingTime;
@@ -277,10 +288,10 @@ function calculateTimeToHours() {
 
 /**
  * Xử lý khi thay đổi giá trị trạng thái
- * @param value 
+ * @param value
  */
 const handleChangeValueStatus = (value: any) => {
-  modalRef.value.modalInputFields.forEach((group: any) => {
+  formRef.value.formInputFields.forEach((group: any) => {
     group.formItems.forEach((item: any) => {
       if (item.field === CONSTANTS.COLUMN_NAME_SHIFT.ShiftStatus) {
         item.value = value;
@@ -295,13 +306,155 @@ const handleChangeValueStatus = (value: any) => {
     });
   });
 };
+
+/**
+ * Validate dữ liệu trong modal ca làm việc
+ * Sử dụng useFormValidator để kiểm tra:
+ * - Required fields (Mã ca, Tên ca, Giờ vào/hết ca)
+ * - Business rules (Giờ hết ca != Giờ vào ca, thời gian nghỉ trong khoảng hợp lệ)
+ * @returns {boolean} - true nếu dữ liệu hợp lệ
+ */
+function validateShiftModal(): boolean {
+  // Định nghĩa các rule validate nghiệp vụ
+  const customRules = {
+    // Rule 1: Giờ hết ca không được bằng giờ vào ca
+    [CONSTANTS.COLUMN_NAME_SHIFT.ShiftEndTime]: () => {
+      if (
+        !isEmpty(timeRef.value.shiftEndTime) &&
+        !isEmpty(timeRef.value.shiftBeginTime) &&
+        isEqual(timeRef.value.shiftEndTime, timeRef.value.shiftBeginTime)
+      ) {
+        formRef.value.errorModal.message =
+          "Giờ hết ca không được bằng giờ vào ca.";
+        return {
+          isValid: false,
+          message: "Giờ hết ca không được bằng giờ vào ca.",
+        };
+      }
+      return { isValid: true };
+    },
+
+    // Rule 2: Kết thúc nghỉ giữa ca không được bằng Bắt đầu nghỉ giữa ca
+    shiftEndBreakTime: () => {
+      if (
+        !isEmpty(timeRef.value.shiftEndBreakTime) &&
+        !isEmpty(timeRef.value.shiftBeginBreakTime) &&
+        isEqual(
+          timeRef.value.shiftEndBreakTime,
+          timeRef.value.shiftBeginBreakTime,
+        )
+      ) {
+        formRef.value.errorModal.message =
+          "Kết thúc nghỉ giữa ca không được bằng Bắt đầu nghỉ giữa ca.";
+        return {
+          isValid: false,
+          message:
+            "Kết thúc nghỉ giữa ca không được bằng Bắt đầu nghỉ giữa ca.",
+        };
+      }
+      return { isValid: true };
+    },
+
+    // Rule 3: Thời gian bắt đầu nghỉ giữa ca phải nằm trong khoảng ca làm việc
+    [CONSTANTS.COLUMN_NAME_SHIFT.ShiftBeginBreakTime]: () => {
+      if (
+        !isEmpty(timeRef.value.shiftBeginBreakTime) &&
+        !isEmpty(timeRef.value.shiftBeginTime) &&
+        !isEmpty(timeRef.value.shiftEndTime) &&
+        !isTimeInRange(
+          timeRef.value.shiftBeginBreakTime as string,
+          timeRef.value.shiftBeginTime as string,
+          timeRef.value.shiftEndTime as string,
+        )
+      ) {
+        const message =
+          "Thời gian bắt đầu nghỉ giữa ca phải nằm trong khoảng thời gian tính từ giờ vào ca đến giờ hết ca. Vui lòng kiểm tra lại.";
+        formRef.value.errorModal.message = message;
+        return { isValid: false, message };
+      }
+      return { isValid: true };
+    },
+
+    // Rule 4: Thời gian kết thúc nghỉ giữa ca phải nằm trong khoảng ca làm việc
+    shiftEndBreakTimeRange: () => {
+      if (
+        !isEmpty(timeRef.value.shiftEndBreakTime) &&
+        !isEmpty(timeRef.value.shiftBeginTime) &&
+        !isEmpty(timeRef.value.shiftEndTime) &&
+        !isTimeInRange(
+          timeRef.value.shiftEndBreakTime as string,
+          timeRef.value.shiftBeginTime as string,
+          timeRef.value.shiftEndTime as string,
+        )
+      ) {
+        const message =
+          "Thời gian kết thúc nghỉ giữa ca phải nằm trong khoảng thời gian tính từ giờ vào ca đến giờ hết ca. Vui lòng kiểm tra lại.";
+        formRef.value.errorModal.message = message;
+
+        // Gán error cho field shiftEndBreakTime
+        formRef.value.formInputFields.forEach((group) => {
+          group.formItems.forEach((item: any) => {
+            if (item.field === "shiftEndBreakTime") {
+              item.errorMessage = message;
+            }
+          });
+        });
+
+        return { isValid: false, message };
+      }
+      return { isValid: true };
+    },
+  };
+
+  // Gọi validateModalForm với custom rules
+  const result = validateModalForm(formRef.value.formInputFields, customRules);
+
+  // Nếu có lỗi và chưa có message, set error message đầu tiên vào errorModal
+  if (!result && !formRef.value.errorModal.message) {
+    const firstError = Object.values(customRules).find((rule) => {
+      const ruleResult = rule();
+      return !ruleResult.isValid;
+    });
+    if (firstError) {
+      const ruleResult = firstError();
+      formRef.value.errorModal.message = ruleResult.message ?? "";
+    }
+  }
+
+  return result;
+}
+
+const clearForm = () => {
+  formRef.value.formInputFields.forEach((group) => {
+    group.formItems.forEach((item: any) => {
+      item.value = null;
+      item.errorMessage = "";
+      if (item.field === CONSTANTS.COLUMN_NAME_SHIFT.ShiftStatus) {
+        item.checkItems?.forEach((checkItem: any) => {
+          if (checkItem.value == 1) {
+            checkItem.isChecked = true;
+            item.value = 1;
+          } else {
+            checkItem.isChecked = false;
+          }
+        });
+      }
+    });
+  });
+};
+
+defineExpose({
+  getData: () => ({ ...formRef.value }),
+  validateShiftModal,
+  clearForm,
+});
 </script>
 
 <template>
   <div class="container-content">
     <div
-      v-for="(field, indexModalInputFields) in modalRef.modalInputFields"
-      :key="indexModalInputFields"
+      v-for="(field, indexFormInputFields) in formRef.formInputFields"
+      :key="indexFormInputFields"
       :class="[
         'form-group',
         { flex: field.isFlex },
@@ -375,6 +528,8 @@ const handleChangeValueStatus = (value: any) => {
             :pointer="fieldItems.pointer"
             :required="fieldItems.isRequired"
             v-model="fieldItems.value"
+            @input="calculateTimeToHours"
+            @blur="calculateTimeToHours"
           />
         </template>
         <template

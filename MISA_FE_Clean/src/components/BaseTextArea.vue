@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // @ts-ignore
-import { defineProps, defineModel, ref, computed } from "vue";
+import { defineProps, defineModel, ref, computed, watch } from "vue";
 
 interface BaseTextAreaProps {
   // Thuộc tính input
@@ -40,6 +40,16 @@ const handleBlur = (event: FocusEvent) => {
 const isHasError = computed(() => {
   return errorMessage.value !== "";
 });
+
+watch(
+  () => props.error,
+  (newVal) => {
+    errorMessage.value = newVal || "";
+  },
+  {
+    deep: true,
+  },
+);
 </script>
 
 <template>

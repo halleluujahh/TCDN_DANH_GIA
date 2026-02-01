@@ -1,5 +1,5 @@
 export interface FormData {
-  modalInputFields: Array<{
+  formInputFields: Array<{
     isFlex: boolean;
     isCheckboxGroup?: boolean;
     formItems: Array<{
@@ -24,8 +24,12 @@ export interface FormData {
       value: string | number | null;
 
       isHideTooltip?: boolean;
-
-      action?: (value: string | number) => string | number;
     }>;
   }>;
+  errorModal: {
+    title: string;
+    iconTitle: "danger" | "error" | "info" | "warning";
+    iconTooltip: string;
+    message: string;
+  };
 }

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 // @ts-ignore
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import type { Pagination } from "../../types/ui/pagination";
 import shiftStore from "../../stores/shift-store";
+// @ts-ignore
 import ShiftTable from "./components/ShiftTable.vue";
 import type { Shift } from "../../types/models/shift/shift";
 import type { FilterDTO } from "../../types/DTO/shift/filter-dto";
@@ -10,10 +11,15 @@ import type { ColumnFilterModal } from "../../types/ui/column-filter-modal";
 import { useShiftTable } from "../../composables/shift/use-shift-table";
 import type { ColumnSort } from "../../types/ui/column-sort";
 import type { TableColumn } from "../../types/ui/table-column";
+// @ts-ignore
 import BasePageHeader from "../../components/BasePageHeader.vue";
+// @ts-ignore
 import BaseBtn from "../../components/BaseBtn.vue";
+// @ts-ignore
 import BaseModal from "../../components/BaseModal.vue";
+// @ts-ignore
 import ShiftForm from "./components/ShiftForm.vue";
+import type { FormData } from "../../types/ui/form";
 
 /**
  * Store ca làm việc
@@ -78,6 +84,7 @@ const shiftModalRef = ref({
   style: { width: "680px", touchAction: "none" },
 });
 
+const shiftFormRef = ref<InstanceType<typeof ShiftForm> | null>(null);
 // =====================REACTIVITY END========================
 
 // =====================METHODS START========================
@@ -222,7 +229,28 @@ const handleRemoveAllFilter = () => {
 const handleOpenModal = () => {
   shiftModalRef.value.isClose = false;
 };
+const saveShiftForm = () => {
+  if (!shiftFormRef.value?.validateShiftModal()) {
+    return;
+  }
+
+  const data = shiftFormRef.value.getData();
+
+  shiftFormRef.value.clearForm();
+};
 // =====================METHODS END========================
+
+const formData = computed<FormData | null>(() => {
+  return shiftFormRef.value ? shiftFormRef.value.getData() : null;
+});
+const isFormValidateError = computed<boolean>(() => {
+  return shiftFormRef.value !== null
+    ? !!(
+        shiftFormRef.value.getData().errorModal.message &&
+        shiftFormRef.value.getData().errorModal.message !== ""
+      )
+    : false;
+});
 
 // =====================WATCH START=====================
 /**
@@ -267,15 +295,14 @@ onMounted(() => {
 </script>
 <template>
   <div class="development-page">
-    <!-- 
-          @click="handleActionTableBtn('openAddModal')"
-     -->
+    <!-- =================PAGE HEADER================= -->
     <BasePageHeader title="Ca làm việc">
       <template #actions>
         <BaseBtn icon="add-white" text="Thêm" @click="handleOpenModal" />
       </template>
     </BasePageHeader>
 
+    <!-- =================TABLE SHIFT================= -->
     <ShiftTable
       :loading="shiftStoreInstance.loading"
       :ids-selected="idsSelected"
@@ -295,12 +322,13 @@ onMounted(() => {
       @remove-all-condition-filter="handleRemoveAllFilter"
       @handle-change-current-page="paginationRef.pageIndex = $event"
     />
-
+    <!-- =================MODAL SHIFT FORM================= -->
     <BaseModal
       :is-close="shiftModalRef.isClose"
       :modal-title="shiftModalRef.modalTitle"
       :is-drag="shiftModalRef.isDrag"
       :style="shiftModalRef.style"
+      @close="shiftModalRef.isClose = true"
     >
       <template #buttonHeaderCluster>
         <BaseBtn
@@ -311,7 +339,67 @@ onMounted(() => {
         ></BaseBtn>
       </template>
       <template #content>
-        <ShiftForm />
+        <ShiftForm ref="shiftFormRef" />
+      </template>
+      <template #footer>
+        <!-- @click="saveShiftForm" -->
+        <BaseBtn
+          text="Lưu"
+          tooltipText="Ctrl + S"
+          type="solid-brand"
+          @click="saveShiftForm"
+        ></BaseBtn>
+        <!-- @click="saveAndAddShiftForm" -->
+        <BaseBtn
+          text="Lưu và thêm"
+          tooltipText="Ctrl + Shift + S"
+          type="outline-neutral"
+        ></BaseBtn>
+        <BaseBtn
+          text="Hủy"
+          tooltipText="ESC"
+          type="outline-neutral"
+          @click="shiftModalRef.isClose = true"
+        ></BaseBtn>
+      </template>
+    </BaseModal>
+
+    <!-- =================MODAL ERROR================= -->
+    <BaseModal
+      :is-close="!isFormValidateError"
+      :modal-title="formData ? formData.errorModal.title || '' : ''"
+      :is-drag="false"
+      :is-hide-footer-line="true"
+      :style="{
+        width: '435px',
+        touchAction: 'none',
+        minHeight: '130px',
+        maxHeight: '150px',
+      }"
+      :icon-title="formData ? formData.errorModal.iconTitle || '' : ''"
+    >
+      <template #buttonHeaderCluster>
+        <BaseBtn
+          icon="icon-close-20"
+          icon-size="icon20"
+          :is-hide-border="true"
+          type="outline-neutral"
+          @click="formData && (formData.errorModal.message = '')"
+        ></BaseBtn>
+      </template>
+      <template #messageError>
+        <div
+          class="msg-item"
+          style="padding-left: 30px"
+          v-html="formData && formData.errorModal.message"
+        ></div>
+      </template>
+      <template #footer>
+        <BaseBtn
+          text="Đóng"
+          type="solid-brand"
+          @click="formData && (formData.errorModal.message = '')"
+        ></BaseBtn>
       </template>
     </BaseModal>
   </div>

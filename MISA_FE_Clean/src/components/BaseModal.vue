@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// @ts-ignore
 import { defineEmits, defineProps, ref } from "vue";
 import { useShortCut } from "../composables/common/use-shortcut";
 
@@ -8,6 +9,8 @@ interface ModalProps {
   modalTitle?: string;
   isDrag?: boolean;
   style?: Record<string, string>;
+  isHideFooterLine?: boolean;
+  iconTitle?: string;
 }
 interface ModalEmits {
   (e: "close"): void;
@@ -105,7 +108,6 @@ useShortCut("esc", () => {
         <div
           class="vfm__container vfm--absolute vfm--inset vfm--outline-none modal-container"
         >
-          <!-- style="width: 680px; touch-action: none" -->
           <div
             class="vfm__content modal-content"
             ref="modalRef"
@@ -120,13 +122,18 @@ useShortCut("esc", () => {
               ]"
             >
               <div class="title-left">
+                <span
+                  :class="['icon20', 'mr-2', 'icon-' + props.iconTitle]"
+                ></span>
                 <div class="title">{{ props.modalTitle }}</div>
               </div>
               <div class="title-right">
                 <slot name="buttonHeaderCluster"></slot>
               </div>
             </div>
-            <div class="subHeader"></div>
+            <div class="subHeader">
+               <slot name="messageError"></slot>
+            </div>
             <div class="modal__content flex-column flex1">
               <span
                 class="popup-shortkey"
@@ -136,7 +143,7 @@ useShortCut("esc", () => {
                 <slot name="content"></slot>
               </div>
             </div>
-            <div class="modal__footer__line"></div>
+            <div v-if="!isHideFooterLine" class="modal__footer__line"></div>
             <div class="modal__footer">
               <div class="flex footer-buttons-parent">
                 <div class="flex footer-buttons-right footer-buttons">
@@ -244,5 +251,11 @@ useShortCut("esc", () => {
 .shift-detail .footer-buttons {
   flex-direction: row-reverse;
   gap: 8px;
+}
+.icon-danger {
+  mask-image: url("../assets/icons/pas.qtsx_icon-e5768799.svg");
+  mask-repeat: no-repeat;
+  mask-position: -249px -168px;
+  background-color: #dc2626;
 }
 </style>

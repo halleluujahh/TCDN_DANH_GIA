@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // @ts-ignore
-import { defineProps, defineModel, ref, computed } from "vue";
+import { defineProps, defineModel, ref, computed, watch } from "vue";
 import {
   formatTime,
   formatTimeAlwaysValid,
@@ -40,6 +40,8 @@ function validateBlank(event: FocusEvent) {
   target.value = target.value.trim();
   if (!target.value && props.required) {
     errorMessage.value = `${props.fieldName} không được để trống`;
+  } else {
+    errorMessage.value = "";
   }
 }
 
@@ -67,6 +69,16 @@ function handleValidAndCalculateTime(event: string, e?: FocusEvent) {
 const isHasError = computed(() => {
   return errorMessage.value !== "";
 });
+
+watch(
+  () => props.error,
+  (newVal) => {
+    errorMessage.value = newVal || "";
+  },
+  {
+    deep: true,
+  },
+);
 </script>
 
 <template>

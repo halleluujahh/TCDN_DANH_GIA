@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { defineProps, ref, defineModel, computed } from "vue";
+// @ts-ignore
+import { defineProps, ref, defineModel, computed, watch } from "vue";
 import { CONSTANTS } from "../constants/common";
 
 interface BaseInputProps {
@@ -38,12 +39,26 @@ const handleBlur = (event: FocusEvent) => {
   target.value = target.value.trim();
   if (!target.value) {
     errorMessage.value = `${props.fieldName} không được để trống`;
+  } else {
+    errorMessage.value = "";
   }
 };
 
 const isHasError = computed(() => {
   return errorMessage.value !== "";
 });
+/**
+ * Lấy thông báo lỗi
+ */
+watch(
+  () => props.error,
+  (newVal) => {
+    errorMessage.value = newVal || "";
+  },
+  {
+    deep: true,
+  },
+);
 </script>
 
 <template>

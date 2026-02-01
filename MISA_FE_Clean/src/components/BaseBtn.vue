@@ -267,4 +267,10 @@ const emit = defineEmits(["click"]);
   mask-position: -96px 0px;
   background-color: #4b5563 !important;
 }
+.icon-close-20 {
+  mask-image: url("../assets/icons/pas.Icon Warehouse-e29a964d.svg");
+  mask-repeat: no-repeat;
+  mask-position: -299px -16px;
+  background-color: #4b5563 !important;
+}
 </style>
