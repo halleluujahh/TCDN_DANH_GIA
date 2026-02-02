@@ -601,6 +601,8 @@ export const useAppStore = defineStore("app", () => {
       textAlign: "left",
 
       realPos: 1,
+
+      expandable: true,
     },
     {
       key: "shiftName",
@@ -616,6 +618,8 @@ export const useAppStore = defineStore("app", () => {
       textAlign: "left",
 
       realPos: 2,
+
+      expandable: true,
     },
     {
       key: "shiftBeginTime",
@@ -634,6 +638,7 @@ export const useAppStore = defineStore("app", () => {
       },
 
       realPos: 3,
+      expandable: true,
     },
     {
       key: "shiftEndTime",
@@ -652,6 +657,7 @@ export const useAppStore = defineStore("app", () => {
       },
 
       realPos: 4,
+      expandable: true,
     },
     {
       key: "shiftBeginBreakTime",
@@ -670,6 +676,7 @@ export const useAppStore = defineStore("app", () => {
       },
 
       realPos: 5,
+      expandable: true,
     },
     {
       key: "shiftEndBreakTime",
@@ -688,6 +695,8 @@ export const useAppStore = defineStore("app", () => {
       },
 
       realPos: 6,
+
+      expandable: true,
     },
     {
       key: "shiftWorkingTime",
@@ -706,6 +715,8 @@ export const useAppStore = defineStore("app", () => {
       },
 
       realPos: 7,
+
+      expandable: true,
     },
     {
       key: "shiftBreakingTime",
@@ -724,6 +735,8 @@ export const useAppStore = defineStore("app", () => {
       },
 
       realPos: 8,
+
+      expandable: true,
     },
     {
       key: "shiftStatus",
@@ -742,6 +755,8 @@ export const useAppStore = defineStore("app", () => {
       },
 
       realPos: 9,
+
+      expandable: true,
     },
     {
       key: "createdBy",
@@ -757,6 +772,8 @@ export const useAppStore = defineStore("app", () => {
       textAlign: "left",
 
       realPos: 10,
+
+      expandable: true,
     },
     {
       key: "createdDate",
@@ -782,6 +799,8 @@ export const useAppStore = defineStore("app", () => {
       },
 
       realPos: 11,
+
+      expandable: true,
     },
     {
       key: "modifiedBy",
@@ -800,6 +819,8 @@ export const useAppStore = defineStore("app", () => {
       },
 
       realPos: 12,
+
+      expandable: true,
     },
     {
       key: "modifiedDate",
@@ -825,6 +846,8 @@ export const useAppStore = defineStore("app", () => {
       },
 
       realPos: 13,
+
+      expandable: true,
     },
   ]);
 

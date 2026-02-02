@@ -20,6 +20,8 @@ import BaseModal from "../../components/BaseModal.vue";
 // @ts-ignore
 import ShiftForm from "./components/ShiftForm.vue";
 import type { FormData } from "../../types/ui/form";
+import { CONSTANTS } from "../../constants/common";
+import type { TableRow } from "../../types/ui/table-row";
 
 /**
  * Store ca làm việc
@@ -75,15 +77,20 @@ const filterDTORef = ref<FilterDTO>({
   searchKeyword: "",
   filterByShiftColumn: [],
 });
-
+/**
+ * Modal thêm/chỉnh sửa ca làm việc
+ */
 const shiftModalRef = ref({
   // Thuộc tính modal
   isClose: true,
   modalTitle: "Thêm ca làm việc",
   isDrag: true,
   style: { width: "680px", touchAction: "none" },
+  row: null as TableRow<Shift> | null,
 });
-
+/**
+ * Ref form ca làm việc
+ */
 const shiftFormRef = ref<InstanceType<typeof ShiftForm> | null>(null);
 // =====================REACTIVITY END========================
 
@@ -187,20 +194,32 @@ const handleUnSelectedAll = () => {
 /**
  * Xử lý khi kích hoạt nhiều ca làm việc
  */
-const handleActiveMultiple = () => {
-  shiftStoreInstance.activeMultipleShifts(idsSelected.value);
+const handleActiveMultiple = async () => {
+  await shiftStoreInstance.activeMultipleShifts(idsSelected.value);
 };
 /**
  * Xử lý khi hủy kích hoạt nhiều ca làm việc
  */
-const handleInactiveMultiple = () => {
-  shiftStoreInstance.inactiveMultipleShifts(idsSelected.value);
+const handleInactiveMultiple = async () => {
+  await shiftStoreInstance.inactiveMultipleShifts(idsSelected.value);
 };
 /**
  * Xử lý khi xóa nhiều ca làm việc
  */
-const handleDeleteMultiple = () => {
-  shiftStoreInstance.deleteMultipleShifts(idsSelected.value);
+const handleDeleteMultiple = async () => {
+  await shiftStoreInstance.deleteMultipleShifts(idsSelected.value);
+  if (shiftStoreInstance.rows.length === 0) {
+    if (paginationRef.value.totalRecords) {
+      paginationRef.value.totalRecords =
+        paginationRef.value.totalRecords - idsSelected.value.size;
+    }
+    if (paginationRef.value.totalPages) {
+      paginationRef.value.totalPages = paginationRef.value.totalPages - 1;
+    }
+    paginationRef.value.pageIndex = paginationRef.value.pageIndex - 1;
+  }
+
+  idsSelected.value.clear();
 };
 /**
  * Xử lý lấy lại dữ liệu
@@ -226,17 +245,62 @@ const handleRemoveFilter = (index: number) => {
 const handleRemoveAllFilter = () => {
   filterDTORef.value.filterByShiftColumn = [];
 };
+/**
+ * Mở modal thêm ca làm việc
+ */
 const handleOpenModal = () => {
   shiftModalRef.value.isClose = false;
+  shiftModalRef.value.modalTitle = "Thêm ca làm việc";
 };
-const saveShiftForm = () => {
+/**
+ * Mở modal chỉnh sửa ca làm việc
+ */
+const handleOpenModalUpdate = (row: TableRow<Shift>) => {
+  shiftModalRef.value.isClose = false;
+  shiftModalRef.value.modalTitle = "Chỉnh sửa ca làm việc";
+  shiftModalRef.value.row = row;
+};
+/**
+ * Lưu form ca làm việc
+ */
+const saveShiftForm = async () => {
   if (!shiftFormRef.value?.validateShiftModal()) {
     return;
   }
 
   const data = shiftFormRef.value.getData();
+  if (!data) {
+    return;
+  }
 
+  let shift: Shift = {} as Shift;
+  data.formInputFields.map((field: any) => {
+    field.formItems.map((item: any) => {
+      if (item.type === CONSTANTS.BASE_INPUT_TYPE.FLOAT_NUM) {
+        (shift as any)[item.field as keyof Shift] = parseFloat(
+          item.value !== null ? item.value.toString().replace(",", ".") : 0,
+        );
+        return;
+      }
+      (shift as any)[item.field as keyof Shift] = item.value;
+    });
+  });
+  await shiftStoreInstance.createShift(shift);
+
+  if (shiftStoreInstance.error) {
+    return;
+  }
+  
   shiftFormRef.value.clearForm();
+  shiftModalRef.value.isClose = true;
+  if (paginationRef.value.totalRecords) {
+    paginationRef.value.totalRecords = paginationRef.value.totalRecords + 1;
+    if (paginationRef.value.totalPages) {
+      paginationRef.value.totalPages = Math.ceil(
+        paginationRef.value.totalRecords / paginationRef.value.pageSize,
+      );
+    }
+  }
 };
 // =====================METHODS END========================
 
@@ -321,6 +385,7 @@ onMounted(() => {
       @remove-condition-filter="handleRemoveFilter"
       @remove-all-condition-filter="handleRemoveAllFilter"
       @handle-change-current-page="paginationRef.pageIndex = $event"
+      @open-shift-modal="handleOpenModalUpdate"
     />
     <!-- =================MODAL SHIFT FORM================= -->
     <BaseModal
@@ -335,11 +400,14 @@ onMounted(() => {
           icon="icon-close"
           :is-hide-border="true"
           type="outline-neutral"
-          @click="shiftModalRef.isClose = true"
+          @click="
+            shiftModalRef.isClose = true;
+            shiftModalRef.row = null;
+          "
         ></BaseBtn>
       </template>
       <template #content>
-        <ShiftForm ref="shiftFormRef" />
+        <ShiftForm ref="shiftFormRef" :row="shiftModalRef.row" />
       </template>
       <template #footer>
         <!-- @click="saveShiftForm" -->
@@ -359,14 +427,17 @@ onMounted(() => {
           text="Hủy"
           tooltipText="ESC"
           type="outline-neutral"
-          @click="shiftModalRef.isClose = true"
+          @click="
+            shiftModalRef.isClose = true;
+            shiftModalRef.row = null;
+          "
         ></BaseBtn>
       </template>
     </BaseModal>
 
     <!-- =================MODAL ERROR================= -->
     <BaseModal
-      :is-close="!isFormValidateError"
+      :is-close="!(isFormValidateError || shiftStoreInstance.error)"
       :modal-title="formData ? formData.errorModal.title || '' : ''"
       :is-drag="false"
       :is-hide-footer-line="true"
@@ -384,21 +455,30 @@ onMounted(() => {
           icon-size="icon20"
           :is-hide-border="true"
           type="outline-neutral"
-          @click="formData && (formData.errorModal.message = '')"
+          @click="
+            formData && (formData.errorModal.message = '');
+            shiftStoreInstance.setError(null);
+          "
         ></BaseBtn>
       </template>
       <template #messageError>
         <div
           class="msg-item"
           style="padding-left: 30px"
-          v-html="formData && formData.errorModal.message"
+          v-html="
+            (formData && formData.errorModal.message) ||
+            shiftStoreInstance.error
+          "
         ></div>
       </template>
       <template #footer>
         <BaseBtn
           text="Đóng"
           type="solid-brand"
-          @click="formData && (formData.errorModal.message = '')"
+          @click="
+            formData && (formData.errorModal.message = '');
+            shiftStoreInstance.setError(null);
+          "
         ></BaseBtn>
       </template>
     </BaseModal>

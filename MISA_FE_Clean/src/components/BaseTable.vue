@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="T">
 import type { TableColumn } from "../types/ui/table-column";
 import type { TableRow } from "../types/ui/table-row";
-import { computed, defineModel } from "vue";
+import { computed, defineModel, onUnmounted, ref } from "vue";
 // @ts-ignore
 import BaseCombobox from "./BaseCombobox.vue";
 import type { Pagination } from "../types/ui/pagination";
@@ -111,6 +111,95 @@ const calculatePreviousIndexPage = computed<number>(() => {
 const calculateNextIndexPage = computed<number>(() => {
   return props.pagination.pageIndex + 1;
 });
+
+/**
+ * Resize column functionality state
+ * Theo dõi: isResizing, columnIndex, startX, startWidth
+ * Created By hanv 20/01/2026
+ */
+const resizing = ref({
+  isResizing: false,
+  columnIndex: null as number | null,
+  startX: 0,
+  startWidth: 0,
+});
+
+/**
+ * Bắt đầu resize cột
+ * Lưu vị trí ban đầu, thêm mouse listeners, đổi cursor
+ * @param {Event} event - Mousedown event trên resize handle
+ * @param {Number} indexColumn - Index của column header
+ * Created By hanv 20/01/2026
+ */
+function startResize(event: MouseEvent, indexColumn: number) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  resizing.value.isResizing = true;
+  resizing.value.columnIndex = indexColumn;
+  resizing.value.startX = event.pageX;
+
+  // Lấy width hiện tại của column
+  const th = (event.target as HTMLElement).closest("th");
+  if (th) {
+    resizing.value.startWidth = th.offsetWidth;
+  }
+
+  document.addEventListener("mousemove", handleResize);
+  document.addEventListener("mouseup", stopResize);
+
+  // Thêm class để thay đổi cursor toàn màn hình
+  document.body.style.cursor = "col-resize";
+  document.body.style.userSelect = "none";
+}
+
+/**
+ * Xử lý resize khi di chuyển chuột
+ * Tính toán width mới và cập nhật header style
+ * @param {Event} event - Mousemove event
+ * Created By hanv 20/01/2026
+ */
+function handleResize(event: MouseEvent) {
+  if (!resizing.value.isResizing) return;
+
+  const diff = event.pageX - resizing.value.startX;
+  const newWidth = resizing.value.startWidth + diff;
+
+  // Đặt min width là 80px
+  if (newWidth >= 80) {
+    const header = props.columns[resizing.value.columnIndex!];
+    if (header && header.width) {
+      header.width = `${newWidth}px`;
+    }
+  }
+}
+
+/**
+ * Kết thúc resize cột
+ * Xóa mouse listeners, reset cursor
+ * Created By hanv 20/01/2026
+ */
+function stopResize() {
+  resizing.value.isResizing = false;
+  resizing.value.columnIndex = null;
+
+  document.removeEventListener("mousemove", handleResize);
+  document.removeEventListener("mouseup", stopResize);
+
+  // Reset cursor
+  document.body.style.cursor = "";
+  document.body.style.userSelect = "";
+}
+
+/**
+ * Cleanup khi component unmount
+ * Xóa tất cả event listeners
+ * Created By hanv 20/01/2026
+ */
+onUnmounted(() => {
+  document.removeEventListener("mousemove", handleResize);
+  document.removeEventListener("mouseup", stopResize);
+});
 </script>
 
 <template>
@@ -136,7 +225,6 @@ const calculateNextIndexPage = computed<number>(() => {
                   >
                     <label class="ms-checkbox justify-center">
                       <!-- Emit Event Check  -->
-                      <!-- :checked="isAllSelected" @click="toggleSelectAllTr" -->
                       <input
                         type="checkbox"
                         class="ms-checkbox-control checkbox"
@@ -155,9 +243,8 @@ const calculateNextIndexPage = computed<number>(() => {
                   </th>
 
                   <!-- Column Table -->
-                  <!-- Style Width Column  -->
                   <th
-                    v-for="column in props.columns"
+                    v-for="(column, indexColumn) in props.columns"
                     :key="column.key"
                     :class="['ms-col-th', 'is-text-column', 'ms-th']"
                     :style="{ minWidth: column.width }"
@@ -192,16 +279,6 @@ const calculateNextIndexPage = computed<number>(() => {
                               v-if="column.filterable"
                               class="ms-th-title-icon flex-center"
                             >
-                              <!-- Hiển thị icon đã có filter ở đây -->
-                              <!-- :class="[
-                                    'icon16',
-                                    tableHeadItems.valueFilterTypeAfterSaved ===
-                                      '' ||
-                                    tableHeadItems.valueFilterTypeAfterSaved ===
-                                      null
-                                      ? 'filter--default'
-                                      : 'filter--active',
-                                  ]" -->
                               <div
                                 class="icon16 filter--default"
                                 @click="$emit('filter-change', $event, column)"
@@ -212,8 +289,11 @@ const calculateNextIndexPage = computed<number>(() => {
                       </div>
 
                       <!-- Resize Table Column -->
-                      <!-- @mousedown="startResize($event, indexTbhItems)" -->
-                      <div v-if="column.expandable" class="ms-resize"></div>
+                      <div
+                        @mousedown="startResize($event, indexColumn)"
+                        v-if="column.expandable"
+                        class="ms-resize"
+                      ></div>
                     </div>
                   </th>
                   <th class="ms-th widget-title" rowspan="0"></th>

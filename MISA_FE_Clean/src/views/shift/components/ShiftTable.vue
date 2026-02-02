@@ -56,7 +56,7 @@ interface TableEmits<T> {
   (e: "removeConditionFilter", index: number): void;
   (e: "removeAllConditionFilter"): void;
   (e: "handleChangeCurrentPage", pageIndex: number): void;
-  (e: "openShiftModal"): void;
+  (e: "openShiftModal", row: TableRow<Shift>): void;
 }
 // =====================TYPE DEFINITIONS END=====================
 
@@ -368,7 +368,7 @@ watch(
           tooltipText="Sửa"
           :isHideBorder="true"
           :isBtnActionTable="true"
-          @click="emits('openShiftModal')"
+          @click="emits('openShiftModal', row)"
         />
         <BaseBtn
           icon="feature-more-blue"

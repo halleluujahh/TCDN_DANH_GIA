@@ -1,6 +1,14 @@
 <script setup lang="ts">
 // @ts-ignore
-import { defineProps, defineModel, ref, computed, watch } from "vue";
+import {
+  defineProps,
+  defineModel,
+  ref,
+  computed,
+  watch,
+  onMounted,
+  onUpdated,
+} from "vue";
 import {
   formatTime,
   formatTimeAlwaysValid,
@@ -79,6 +87,12 @@ watch(
     deep: true,
   },
 );
+
+onUpdated(() => {
+  // Format lại giá trị ban đầu
+  //@ts-ignore
+  modelValue.value = formatTime(modelValue.value as string | number | null);
+});
 </script>
 
 <template>

@@ -41,13 +41,15 @@ namespace MISA_Core.Validator
                 .GreaterThanOrEqualTo(x => x.ShiftBeginTime)
                 .WithMessage("Thời gian bắt đầu nghỉ giữa ca phải nằm trong khoảng thời gian tính từ giờ vào ca đến giờ hết ca. Vui lòng kiểm tra lại.")
                 .LessThanOrEqualTo(x => x.ShiftEndTime)
-                .WithMessage("Thời gian bắt đầu nghỉ giữa ca phải nằm trong khoảng thời gian tính từ giờ vào ca đến giờ hết ca. Vui lòng kiểm tra lại.");
+                .WithMessage("Thời gian bắt đầu nghỉ giữa ca phải nằm trong khoảng thời gian tính từ giờ vào ca đến giờ hết ca. Vui lòng kiểm tra lại.")
+                .When(x => x.ShiftBeginBreakTime != null && x.ShiftEndBreakTime != null && x.ShiftBeginBreakTime != "" && x.ShiftEndBreakTime != "");
             RuleFor(x => x.ShiftEndBreakTime)
                 .NotEqual(x => x.ShiftBeginBreakTime).WithMessage("Kết thúc nghỉ giữa ca không được bằng Bắt đầu nghỉ giữa ca")
                 .GreaterThanOrEqualTo(x => x.ShiftBeginTime)
                 .WithMessage("Thời gian bắt đầu nghỉ giữa ca phải nằm trong khoảng thời gian tính từ giờ vào ca đến giờ hết ca. Vui lòng kiểm tra lại.")
                 .LessThanOrEqualTo(x => x.ShiftEndTime)
-                .WithMessage("Thời gian kết thúc nghỉ giữa ca phải nằm trong khoảng thời gian tính từ giờ vào ca đến giờ hết ca. Vui lòng kiểm tra lại.");
+                .WithMessage("Thời gian kết thúc nghỉ giữa ca phải nằm trong khoảng thời gian tính từ giờ vào ca đến giờ hết ca. Vui lòng kiểm tra lại.")
+                .When(x => x.ShiftBeginBreakTime != null && x.ShiftEndBreakTime != null && x.ShiftBeginBreakTime != "" && x.ShiftEndBreakTime != "");
         }
     }
 }

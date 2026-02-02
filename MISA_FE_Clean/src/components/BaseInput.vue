@@ -47,9 +47,7 @@ const handleBlur = (event: FocusEvent) => {
 const isHasError = computed(() => {
   return errorMessage.value !== "";
 });
-/**
- * Lấy thông báo lỗi
- */
+
 watch(
   () => props.error,
   (newVal) => {

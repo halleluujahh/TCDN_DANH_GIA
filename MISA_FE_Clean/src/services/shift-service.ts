@@ -68,7 +68,7 @@ export class ShiftService implements BaseService<Shift> {
    * @returns {Promise<void>}
    */
   async delete(ids: Set<string>): Promise<Response<null>> {
-    return await shiftApi.deleteMultiple(ids);
+    return await shiftApi.deleteMultiple("/delete", ids);
   }
 }
 

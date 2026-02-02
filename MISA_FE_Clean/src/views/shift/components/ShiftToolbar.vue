@@ -177,7 +177,7 @@ watch(searchKeywordRef, (newVal) => {
         <div class="unselected" @click="emits('unSelectedAll')">Bỏ chọn</div>
         <!-- Active hàng loạt -->
         <BaseBtn
-          v-if="isAnyStatusActiveSelected"
+          v-if="isAnyStatusInactiveSelected"
           @click="emits('activeMultiple')"
           icon="active"
           text="Sử dụng"
@@ -185,7 +185,7 @@ watch(searchKeywordRef, (newVal) => {
         />
         <!-- Unactive hàng loạt -->
         <BaseBtn
-          v-if="isAnyStatusInactiveSelected"
+          v-if="isAnyStatusActiveSelected"
           @click="emits('inactiveMultiple')"
           icon="inactive"
           text="Ngừng sử dụng"

@@ -2,7 +2,8 @@ import { defineStore } from "pinia";
 import type { Shift } from "../types/models/shift/shift";
 import { shiftService } from "../services/shift-service";
 import type { filterDTO } from "../types/DTO/shift/filter-dto";
-import type { set } from "lodash";
+import { add, create, type set } from "lodash";
+import type { Response } from "../types/DTO/response";
 
 const shiftStore = defineStore("shiftStore", {
   state: () => ({
@@ -35,7 +36,17 @@ const shiftStore = defineStore("shiftStore", {
     deleteRows(ids: Set<string>) {
       this.rows = this.rows.filter((shift) => !ids.has(shift.shiftId));
     },
-
+    addRow(shift: Shift) {
+      this.rows.unshift(shift);
+    },
+    updateRow(id: string, updatedShift: Shift) {
+      this.rows = this.rows.map((shift) => {
+        if (shift.shiftId === id) {
+          return { ...updatedShift };
+        }
+        return shift;
+      });
+    },
     /**
      * Load shifts with pagination
      * @param pageSize - number of items per page
@@ -49,7 +60,7 @@ const shiftStore = defineStore("shiftStore", {
         this.setRows(response.listData);
         this.setTotalItems(response.totalItem);
       } catch (error: any) {
-        this.setError(error.message);
+        this.setError(error.data.errors.ErrorMessage);
       } finally {
         this.setLoading(false);
       }
@@ -71,7 +82,7 @@ const shiftStore = defineStore("shiftStore", {
         this.setRows(response.listData);
         this.setTotalItems(response.totalItem);
       } catch (error: any) {
-        this.setError(error.message);
+        this.setError(error.data.errors.ErrorMessage);
       } finally {
         this.setLoading(false);
       }
@@ -83,10 +94,10 @@ const shiftStore = defineStore("shiftStore", {
     async activeMultipleShifts(ids: Set<string>): Promise<void> {
       try {
         this.setLoading(true);
-        await shiftService.updateStatusActive(ids);
         this.updateStatusRows(ids, true);
+        await shiftService.updateStatusActive(ids);
       } catch (error: any) {
-        this.setError(error.message);
+        this.setError(error.data.errors.ErrorMessage);
       } finally {
         this.setLoading(false);
       }
@@ -98,10 +109,10 @@ const shiftStore = defineStore("shiftStore", {
     async inactiveMultipleShifts(ids: Set<string>): Promise<void> {
       try {
         this.setLoading(true);
-        await shiftService.updateStatusInactive(ids);
         this.updateStatusRows(ids, false);
+        await shiftService.updateStatusInactive(ids);
       } catch (error: any) {
-        this.setError(error.message);
+        this.setError(error.data.errors.ErrorMessage);
       } finally {
         this.setLoading(false);
       }
@@ -113,10 +124,47 @@ const shiftStore = defineStore("shiftStore", {
     async deleteMultipleShifts(ids: Set<string>): Promise<void> {
       try {
         this.setLoading(true);
-        await shiftService.delete(ids);
         this.deleteRows(ids);
+        await shiftService.delete(ids);
       } catch (error: any) {
-        this.setError(error.message);
+        this.setError(error.data.errors.ErrorMessage);
+      } finally {
+        this.setLoading(false);
+      }
+    },
+    /**
+     * Thêm mới ca làm việc
+     * @param shift
+     * @returns
+     */
+    async createShift(shift: Shift): Promise<void> {
+      try {
+        this.setLoading(true);
+        const createdShift = await shiftService.create(shift);
+        this.addRow(createdShift.data as Shift);
+      } catch (error: any) {
+        this.setError(error.data.errors.ErrorMessage);
+      } finally {
+        this.setLoading(false);
+      }
+    },
+    /**
+     * Cập nhật ca làm việc
+     * @param id
+     * @param shift
+     * @returns
+     */
+    async updateShift(
+      id: string,
+      shift: Shift,
+    ): Promise<Response<Shift> | undefined> {
+      try {
+        this.setLoading(true);
+        const updatedShift = await shiftService.update(id, shift);
+        this.updateRow(id, shift);
+        return updatedShift;
+      } catch (error: any) {
+        this.setError(error.data.errors.ErrorMessage);
       } finally {
         this.setLoading(false);
       }

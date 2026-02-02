@@ -39,13 +39,14 @@ class BaseApi {
   }
 
   /** DELETE Multiple request
-   * @param {string} url - The endpoint URL.
+   * @param {Set<string> | string[]} ids - The ids to delete.
    * @returns {Promise<any>} - The response data.
    **/
-  async deleteMultiple(ids: Set<string>): Promise<any> {
+  async deleteMultiple(url: string, ids: Set<string> | string[]): Promise<any> {
+    const idList = ids instanceof Set ? Array.from(ids) : ids;
     const formData = new FormData();
-    formData.append("ids", ids as any);
-    return this.axios.delete(this.endpoint, { data: formData });
+    idList.forEach((id) => formData.append("ids", id));
+    return this.axios.delete(`${this.endpoint}${url}`, { data: formData });
   }
 }
 

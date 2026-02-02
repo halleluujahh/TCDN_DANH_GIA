@@ -3,7 +3,7 @@
 import BaseInput from "../../../components/BaseInput.vue";
 import { CONSTANTS } from "../../../constants/common";
 // @ts-ignore
-import { ref, defineExpose } from "vue";
+import { ref, defineExpose, defineProps, onMounted } from "vue";
 import type { FormData } from "../../../types/ui/form";
 // @ts-ignore
 import BaseTextArea from "../../../components/BaseTextArea.vue";
@@ -12,7 +12,13 @@ import BaseTimePicker from "../../../components/BaseTimePicker.vue";
 // @ts-ignore
 import BaseRadioButton from "../../../components/BaseRadioButton.vue";
 import { useShiftForm } from "../../../composables/shift/use-shift-form";
+import type { TableRow } from "../../../types/ui/table-row";
+import type { Shift } from "../../../types/models/shift/shift";
 
+interface ShiftFormProps {
+  row: TableRow<Shift> | null;
+}
+const props = defineProps<ShiftFormProps>();
 /**
  * Hàm lấy phương thức tính toán thời gian làm việc từ composable useShiftForm
  */
@@ -235,13 +241,13 @@ function calculateTimeToHours() {
       "",
     );
   }
-  // if (
-  //   idUpdatedRef.value > 0 &&
-  //   !timeRef.value.shiftBeginBreakTime &&
-  //   !timeRef.value.shiftEndBreakTime
-  // ) {
-  //   timeRef.value.shiftBreakingTime = "0,00";
-  // }
+  if (
+    props.row &&
+    !timeRef.value.shiftBeginBreakTime &&
+    !timeRef.value.shiftEndBreakTime
+  ) {
+    timeRef.value.shiftBreakingTime = "0,00";
+  }
 
   // Tính toán thời gian làm việc
   if (timeRef.value.shiftBeginTime && timeRef.value.shiftEndTime) {
@@ -252,13 +258,13 @@ function calculateTimeToHours() {
     );
   }
 
-  // if (
-  //   idUpdatedRef.value > 0 &&
-  //   !timeRef.value.shiftBeginTime &&
-  //   !timeRef.value.shiftEndTime
-  // ) {
-  //   timeRef.value.shiftWorkingTime = "0,00";
-  // }
+  if (
+    props.row &&
+    !timeRef.value.shiftBeginTime &&
+    !timeRef.value.shiftEndTime
+  ) {
+    timeRef.value.shiftWorkingTime = "0,00";
+  }
 
   // Cập nhật giá trị thời gian làm việc và thời gian nghỉ giữa ca vào modal
   formRef.value.formInputFields.forEach((group: any) => {
@@ -442,11 +448,65 @@ const clearForm = () => {
     });
   });
 };
-
+/**
+ * Set dữ liệu vào form
+ * @param row
+ */
+const setData = (row: TableRow<Shift>) => {
+  formRef.value.formInputFields.map((field) => {
+    field.formItems.map((item: any) => {
+      switch (item.field) {
+        case CONSTANTS.COLUMN_NAME_SHIFT.ShiftCode:
+          item.value = row.data.shiftCode;
+          break;
+        case CONSTANTS.COLUMN_NAME_SHIFT.ShiftName:
+          item.value = row.data.shiftName;
+          break;
+        case CONSTANTS.COLUMN_NAME_SHIFT.ShiftBeginTime:
+          item.value = row.data.shiftBeginTime;
+          break;
+        case CONSTANTS.COLUMN_NAME_SHIFT.ShiftEndTime:
+          item.value = row.data.shiftEndTime;
+          break;
+        case CONSTANTS.COLUMN_NAME_SHIFT.ShiftBeginBreakTime:
+          item.value = row.data.shiftBeginBreakTime;
+          break;
+        case CONSTANTS.COLUMN_NAME_SHIFT.ShiftEndBreakTime:
+          item.value = row.data.shiftEndBreakTime;
+          break;
+        case CONSTANTS.COLUMN_NAME_SHIFT.ShiftWorkingTime:
+          item.value = row.data.shiftWorkingTime;
+          break;
+        case CONSTANTS.COLUMN_NAME_SHIFT.ShiftBreakingTime:
+          item.value = row.data.shiftBreakingTime;
+          break;
+        case CONSTANTS.COLUMN_NAME_SHIFT.ShiftDescription:
+          item.value = row.data.shiftDescription;
+          break;
+        case CONSTANTS.COLUMN_NAME_SHIFT.ShiftStatus:
+          handleChangeValueStatus(row.data.shiftStatus);
+          break;
+      }
+    });
+  });
+};
 defineExpose({
   getData: () => ({ ...formRef.value }),
   validateShiftModal,
   clearForm,
+});
+
+/**
+ * Set dữ liệu vào form
+ * @param row Dòng dữ liệu ca làm việc
+ */
+onMounted(() => {
+  clearForm();
+
+  if (props.row !== null) {
+    setData(props.row);
+    calculateTimeToHours();
+  }
 });
 </script>
 
