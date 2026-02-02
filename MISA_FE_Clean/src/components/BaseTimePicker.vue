@@ -41,7 +41,8 @@ const errorMessage = ref(props.error !== undefined ? props.error : "");
 
 /**
  * Validate trống khi blur
- * @param event
+ * @param {FocusEvent} event - Sự kiện blur
+ * Created By hanv 02/02/2026
  */
 function validateBlank(event: FocusEvent) {
   const target = event.target as HTMLInputElement;
@@ -57,7 +58,8 @@ function validateBlank(event: FocusEvent) {
  * Validate và format time value
  * Format HH:MM tự động khi input hoặc blur
  * @param {String} event - Loại event (input hoặc blur)
- * Created By hanv 20/01/2026
+ * @param {FocusEvent} e - Sự kiện focus event (optional)
+ * Created By hanv 02/02/2026
  */
 function handleValidAndCalculateTime(event: string, e?: FocusEvent) {
   if (event === "input") {

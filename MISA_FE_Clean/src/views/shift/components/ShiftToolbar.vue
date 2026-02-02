@@ -33,19 +33,22 @@ const emits = defineEmits<ShiftToolbarEmits>();
 
 /**
  * Từ khóa tìm kiếm chung
+ * Created By hanv 02/02/2026
  */
 const searchKeywordRef = ref<string>("");
 
 // =====================METHODS START========================
 /**
  * Hàm debounce để tìm kiếm
- * @param value
+ * @param {string} value - Giá trị tìm kiếm
+ * Created By hanv 02/02/2026
  */
 const debouncedSearch = debounce((value: string) => {
   emits("changeSearchKeyword", value);
 }, 500);
 /**
  * Xử lý lấy lại dữ liệu
+ * Created By hanv 02/02/2026
  */
 const handleReloadData = () => {
   searchKeywordRef.value = "";
@@ -53,8 +56,9 @@ const handleReloadData = () => {
 };
 /**
  * Lấy tên cột filter để hiển thị
- * @param filterName
- * @return string
+ * @param {string} filterName - Tên cột filter
+ * @return {string} - Tên cột hiển thị
+ * Created By hanv 02/02/2026
  */
 const getFilterColumnName = (filterName: string): string => {
   return CONSTANTS.COLUMN_NAME_SHIFT_DISPLAY[
@@ -63,8 +67,9 @@ const getFilterColumnName = (filterName: string): string => {
 };
 /**
  * Lấy tên loại filter
- * @param filter 
- * @return string
+ * @param {any} filter - Bộ lọc
+ * @return {string} - Tên loại filter
+ * Created By hanv 02/02/2026
  */
 const getFilterType = (filter: any): string => {
   if (filter.filterColumnType !== undefined) {
@@ -82,21 +87,24 @@ const getFilterType = (filter: any): string => {
 // =====================COMPUTED START=====================
 /**
  * Kiểm tra có bất kỳ item nào được chọn không
- * @return boolean
+ * @return {boolean} - True nếu có item được chọn
+ * Created By hanv 02/02/2026
  */
 const isAnySelection = computed<boolean>(() => {
   return (props.idsSelected?.size || 0) > 0;
 });
 /**
  * Số lượng item đã chọn
- * @return number
+ * @return {number} - Số lượng item đã chọn
+ * Created By hanv 02/02/2026
  */
 const selectedCount = computed<number>(() => {
   return props.idsSelected?.size || 0;
 });
 /**
  * Kiểm tra có bất kỳ item nào được chọn có trạng thái Active không
- * @return boolean
+ * @return {boolean} - True nếu có item Active được chọn
+ * Created By hanv 02/02/2026
  */
 const isAnyStatusActiveSelected = computed<boolean>(() => {
   if (!props.idsSelected) return false;
@@ -113,7 +121,8 @@ const isAnyStatusActiveSelected = computed<boolean>(() => {
 });
 /**
  * Kiểm tra có bất kỳ item nào được chọn có trạng thái Inactive không
- * @return boolean
+ * @return {boolean} - True nếu có item Inactive được chọn
+ * Created By hanv 02/02/2026
  */
 const isAnyStatusInactiveSelected = computed<boolean>(() => {
   return props.rows.some((row: TableRow<Shift>) => {
@@ -129,7 +138,8 @@ const isAnyStatusInactiveSelected = computed<boolean>(() => {
 });
 /**
  * Kiểm tra có bất kỳ filter nào được áp dụng không
- * @return boolean
+ * @return {boolean} - True nếu có filter được áp dụng
+ * Created By hanv 02/02/2026
  */
 const isAnyFilter = computed<boolean>(() => {
   if (!props.filterDTO?.filterByShiftColumn) return false;
@@ -140,13 +150,16 @@ const isAnyFilter = computed<boolean>(() => {
 });
 // =====================COMPUTED END=====================
 
+// =====================WATCH START=====================
 /**
  * Watch từ khóa tìm kiếm và phát sự kiện lên cha
- * @param newVal
+ * @param {string} newVal - Giá trị mới của từ khóa tìm kiếm
+ * Created By hanv 02/02/2026
  */
 watch(searchKeywordRef, (newVal) => {
   debouncedSearch(newVal);
 });
+// =====================WATCH END=====================
 </script>
 
 <template>

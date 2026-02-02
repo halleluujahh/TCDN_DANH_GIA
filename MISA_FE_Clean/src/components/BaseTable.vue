@@ -33,8 +33,9 @@ const emit = defineEmits<TableEmits<T>>();
 
 /**
  * Kiểm tra một hàng có được chọn hay không
- * @param row
- * @return boolean
+ * @param {TableRow<T>} row - Hàng cần kiểm tra
+ * @returns {Boolean} Trạng thái check
+ * Created By hanv 02/02/2026
  */
 // @ts-ignore
 const isCheckedRow = (row: TableRow<T>): boolean => {
@@ -46,15 +47,18 @@ const isCheckedRow = (row: TableRow<T>): boolean => {
 
 /**
  * Kiểm tra tất cả các hàng có được chọn hay không
- * @return boolean
+ * @returns {Boolean} Trạng thái check tất cả
+ * Created By hanv 02/02/2026
  */
 const isCheckedAll = (): boolean => {
   return props.rows.length > 0 && props.rows.every((row) => isCheckedRow(row));
 };
 /**
  * Lấy giá trị của ô
- * @param row
- * @param column
+ * @param {TableRow<T>} row - Hàng dữ liệu
+ * @param {TableColumn<T>} column - Cột dữ liệu
+ * @returns {Any} Giá trị của ô
+ * Created By hanv 02/02/2026
  */
 // @ts-ignore
 const getCellValue = (row: TableRow<T>, column: TableColumn<T>): any => {
@@ -64,8 +68,10 @@ const getCellValue = (row: TableRow<T>, column: TableColumn<T>): any => {
 };
 /**
  * Kiểm tra trạng thái active/inactive
- * @param row
- * @param column
+ * @param {TableRow<T>} row - Hàng dữ liệu
+ * @param {TableColumn<T>} column - Cột dữ liệu
+ * @returns {String} Trạng thái active/inactive
+ * Created By hanv 02/02/2026
  */
 // @ts-ignore
 const isActive = (row: TableRow<T>, column: TableColumn<T>): string => {
@@ -75,14 +81,16 @@ const isActive = (row: TableRow<T>, column: TableColumn<T>): string => {
 
 /**
  * Tính toán trạng thái vô hiệu hóa nút trang trước
- * @return boolean
+ * @returns {Boolean} Trạng thái disabled
+ * Created By hanv 02/02/2026
  */
 const isDisabledPreviousPageBtn = computed<boolean>(() => {
   return props.pagination.pageIndex === 0;
 });
 /**
  * Tính toán trạng thái vô hiệu hóa nút trang kế tiếp
- * @return boolean
+ * @returns {Boolean} Trạng thái disabled
+ * Created By hanv 02/02/2026
  */
 const isDisabledNextPageBtn = computed<boolean>(() => {
   if (
@@ -99,14 +107,16 @@ const isDisabledNextPageBtn = computed<boolean>(() => {
 });
 /**
  * Tính toán số trang trước đó
- * @return number
+ * @returns {Number} Chỉ số trang trước
+ * Created By hanv 02/02/2026
  */
 const calculatePreviousIndexPage = computed<number>(() => {
   return props.pagination.pageIndex > 0 ? props.pagination.pageIndex - 1 : 0;
 });
 /**
  * Tính toán số trang kế tiếp
- * @return number
+ * @returns {Number} Chỉ số trang tiếp theo
+ * Created By hanv 02/02/2026
  */
 const calculateNextIndexPage = computed<number>(() => {
   return props.pagination.pageIndex + 1;
@@ -127,9 +137,9 @@ const resizing = ref({
 /**
  * Bắt đầu resize cột
  * Lưu vị trí ban đầu, thêm mouse listeners, đổi cursor
- * @param {Event} event - Mousedown event trên resize handle
+ * @param {MouseEvent} event - Mousedown event trên resize handle
  * @param {Number} indexColumn - Index của column header
- * Created By hanv 20/01/2026
+ * Created By hanv 02/02/2026
  */
 function startResize(event: MouseEvent, indexColumn: number) {
   event.preventDefault();
@@ -156,8 +166,8 @@ function startResize(event: MouseEvent, indexColumn: number) {
 /**
  * Xử lý resize khi di chuyển chuột
  * Tính toán width mới và cập nhật header style
- * @param {Event} event - Mousemove event
- * Created By hanv 20/01/2026
+ * @param {MouseEvent} event - Mousemove event
+ * Created By hanv 02/02/2026
  */
 function handleResize(event: MouseEvent) {
   if (!resizing.value.isResizing) return;
@@ -323,8 +333,6 @@ onUnmounted(() => {
 
                 <!-- Dữ liệu bảng -->
                 <template v-else>
-                  <!-- Row Selected Add This Style  -->
-                  <!-- ? 'row-selected' : '' -->
                   <tr
                     v-for="row in props.rows"
                     :key="row.key"
@@ -361,7 +369,6 @@ onUnmounted(() => {
                           <span :style="{ textAlign: column.textAlign }">
                             <span class="text-view">
                               <!-- Add Class active | inactive Here -->
-                              <!-- rowItem.isActive ? 'active' : 'inactive', -->
                               <div
                                 :class="[
                                   'custom-status',
@@ -378,7 +385,6 @@ onUnmounted(() => {
                     <td class="ms-td widget-item sticky">
                       <div class="widget-container">
                         <!-- Emit lên cha row Here -->
-                        <!-- :row="" -->
                         <slot name="row-actions" :row="row"></slot>
                       </div>
                     </td>

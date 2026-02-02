@@ -10,12 +10,14 @@ interface BaseSelectboxProps {
   /**
    * Style object cho wrapper
    * @type {Object}
+   * Created By hanv 02/02/2026
    */
   style?: Record<string, string>;
 
   /**
    * Danh sách menu items
    * @type {Array}
+   * Created By hanv 02/02/2026
    */
   selectBoxItems: Array<{
     text: string;
@@ -33,6 +35,11 @@ interface BaseSelectboxEmits {
 const props = defineProps<BaseSelectboxProps>();
 const emit = defineEmits<BaseSelectboxEmits>();
 
+/**
+ * Xử lý thay đổi giá trị selectbox
+ * @param {String | Number} value - Giá trị được chọn
+ * Created By hanv 02/02/2026
+ */
 const handleChange = (value: string | number | undefined) => {
   if (value !== undefined) {
     emit("select", value);

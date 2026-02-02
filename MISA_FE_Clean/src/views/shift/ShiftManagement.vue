@@ -25,12 +25,14 @@ import type { TableRow } from "../../types/ui/table-row";
 
 /**
  * Store ca làm việc
+ * Created By hanv 02/02/2026
  */
 const shiftStoreInstance = shiftStore();
 
 // =====================COMPOSABLES START=======================
 /**
  * Sử dụng các hàm trong useShiftTable
+ * Created By hanv 02/02/2026
  */
 const { mapSortArrayToFilterDTOFunc, mapFilterArrayToFilterDTOFunc } =
   useShiftTable();
@@ -39,11 +41,13 @@ const { mapSortArrayToFilterDTOFunc, mapFilterArrayToFilterDTOFunc } =
 // =====================REACTIVITY START========================
 /**
  * Để lưu các hàng của bảng ca làm việc được chọn
+ * Created By hanv 02/02/2026
  */
 const idsSelected = ref<Set<string>>(new Set<string>());
 
 /**
  * Phân trang danh sách ca làm việc
+ * Created By hanv 02/02/2026
  */
 const paginationRef = ref<Pagination>({
   pageIndex: 0, // Trang hiện tại
@@ -72,6 +76,7 @@ const paginationRef = ref<Pagination>({
 
 /**
  * Bộ lọc danh sách ca làm việc
+ * Created By hanv 02/02/2026
  */
 const filterDTORef = ref<FilterDTO>({
   searchKeyword: "",
@@ -79,6 +84,7 @@ const filterDTORef = ref<FilterDTO>({
 });
 /**
  * Modal thêm/chỉnh sửa ca làm việc
+ * Created By hanv 02/02/2026
  */
 const shiftModalRef = ref({
   // Thuộc tính modal
@@ -90,6 +96,7 @@ const shiftModalRef = ref({
 });
 /**
  * Ref form ca làm việc
+ * Created By hanv 02/02/2026
  */
 const shiftFormRef = ref<InstanceType<typeof ShiftForm> | null>(null);
 // =====================REACTIVITY END========================
@@ -97,7 +104,8 @@ const shiftFormRef = ref<InstanceType<typeof ShiftForm> | null>(null);
 // =====================METHODS START========================
 /**
  * Xử lý khi người dùng chọn hoặc bỏ chọn một hàng
- * @param row
+ * @param {any} row - Hàng được chọn
+ * Created By hanv 02/02/2026
  */
 const handleToggleCheck = (row: any) => {
   const id = row.key;
@@ -110,7 +118,8 @@ const handleToggleCheck = (row: any) => {
 /**
  * Xử lý khi người dùng chọn hoặc bỏ chọn tất cả
  * các hàng trong bảng
- * @param rows
+ * @param {any[]} rows - Danh sách các hàng
+ * Created By hanv 02/02/2026
  */
 const handleToggleCheckAll = (rows: any[]) => {
   const allSelected = rows.every((row) => idsSelected.value.has(row.key));
@@ -122,6 +131,7 @@ const handleToggleCheckAll = (rows: any[]) => {
 };
 /**
  * Gọi API lấy danh sách ca làm việc
+ * Created By hanv 02/02/2026
  */
 const getAllShifts = async (pagination: Pagination) => {
   await shiftStoreInstance.loadShifts({
@@ -135,8 +145,9 @@ const getAllShifts = async (pagination: Pagination) => {
 };
 /**
  * Gọi API lấy danh sách ca làm việc với bộ lọc
- * @param pagination
- * @param filter
+ * @param {Object} pagination - Thông tin phân trang
+ * @param {FilterDTO} filter - Bộ lọc
+ * Created By hanv 02/02/2026
  */
 const getAllShiftsWithFilter = async (
   pagination: {
@@ -157,7 +168,8 @@ const getAllShiftsWithFilter = async (
 };
 /**
  * Xử lý khi có thay đổi bộ lọc
- * @param filterArrayRef
+ * @param {ColumnFilterModal[]} filterArrayRef - Mảng bộ lọc
+ * Created By hanv 02/02/2026
  */
 const handleFilterChange = (filterArrayRef: ColumnFilterModal[]) => {
   if (filterArrayRef.length === 0) {
@@ -168,8 +180,9 @@ const handleFilterChange = (filterArrayRef: ColumnFilterModal[]) => {
 };
 /**
  * Xử lý khi có thay đổi tùy chọn nhóm
- * @param sortArrayRef
- * @param table
+ * @param {ColumnSort[]} sortArrayRef - Mảng sắp xếp
+ * @param {TableColumn<Shift>[]} table - Danh sách cột
+ * Created By hanv 02/02/2026
  */
 const handleGroupOptionChange = (
   sortArrayRef: ColumnSort[],
@@ -179,7 +192,8 @@ const handleGroupOptionChange = (
 };
 /**
  * Xử lý khi có thay đổi từ khóa tìm kiếm
- * @param searchKeyword
+ * @param {string} searchKeyword - Từ khóa tìm kiếm
+ * Created By hanv 02/02/2026
  */
 const handleChangeSearchKeyword = (searchKeyword: string) => {
   console.log("searchKeyword", searchKeyword);
@@ -187,24 +201,28 @@ const handleChangeSearchKeyword = (searchKeyword: string) => {
 };
 /**
  * Xử lý khi bỏ chọn tất cả
+ * Created By hanv 02/02/2026
  */
 const handleUnSelectedAll = () => {
   idsSelected.value.clear();
 };
 /**
  * Xử lý khi kích hoạt nhiều ca làm việc
+ * Created By hanv 02/02/2026
  */
 const handleActiveMultiple = async () => {
   await shiftStoreInstance.activeMultipleShifts(idsSelected.value);
 };
 /**
  * Xử lý khi hủy kích hoạt nhiều ca làm việc
+ * Created By hanv 02/02/2026
  */
 const handleInactiveMultiple = async () => {
   await shiftStoreInstance.inactiveMultipleShifts(idsSelected.value);
 };
 /**
  * Xử lý khi xóa nhiều ca làm việc
+ * Created By hanv 02/02/2026
  */
 const handleDeleteMultiple = async () => {
   await shiftStoreInstance.deleteMultipleShifts(idsSelected.value);
@@ -223,6 +241,7 @@ const handleDeleteMultiple = async () => {
 };
 /**
  * Xử lý lấy lại dữ liệu
+ * Created By hanv 02/02/2026
  */
 const handleReloadData = () => {
   paginationRef.value.pageIndex = 0;
@@ -234,19 +253,22 @@ const handleReloadData = () => {
 };
 /**
  * Xử lý khi xóa điều kiện lọc
- * @param index
+ * @param {number} index - Chỉ số điều kiện lọc
+ * Created By hanv 02/02/2026
  */
 const handleRemoveFilter = (index: number) => {
   filterDTORef.value.filterByShiftColumn.splice(index, 1);
 };
 /**
  * Xử lý khi xóa tất cả điều kiện lọc
+ * Created By hanv 02/02/2026
  */
 const handleRemoveAllFilter = () => {
   filterDTORef.value.filterByShiftColumn = [];
 };
 /**
  * Mở modal thêm ca làm việc
+ * Created By hanv 02/02/2026
  */
 const handleOpenModal = () => {
   shiftModalRef.value.isClose = false;
@@ -254,6 +276,7 @@ const handleOpenModal = () => {
 };
 /**
  * Mở modal chỉnh sửa ca làm việc
+ * Created By hanv 02/02/2026
  */
 const handleOpenModalUpdate = (row: TableRow<Shift>) => {
   shiftModalRef.value.isClose = false;
@@ -262,6 +285,7 @@ const handleOpenModalUpdate = (row: TableRow<Shift>) => {
 };
 /**
  * Lưu form ca làm việc
+ * Created By hanv 02/02/2026
  */
 const saveShiftForm = async () => {
   if (!shiftFormRef.value?.validateShiftModal()) {
@@ -290,7 +314,7 @@ const saveShiftForm = async () => {
   if (shiftStoreInstance.error) {
     return;
   }
-  
+
   shiftFormRef.value.clearForm();
   shiftModalRef.value.isClose = true;
   if (paginationRef.value.totalRecords) {
@@ -319,6 +343,7 @@ const isFormValidateError = computed<boolean>(() => {
 // =====================WATCH START=====================
 /**
  * Watch thay đổi mảng lọc cột
+ * Created By hanv 02/02/2026
  */
 watch(
   () => filterDTORef.value,
@@ -331,6 +356,7 @@ watch(
 );
 /**
  * Watch thay đổi phân trang
+ * Created By hanv 02/02/2026
  */
 watch(
   () => ({
@@ -349,6 +375,7 @@ watch(
 /**
  * Khi component được mounted,
  * gọi hàm lấy danh sách ca làm việc
+ * Created By hanv 02/02/2026
  */
 onMounted(() => {
   getAllShifts({
@@ -359,14 +386,15 @@ onMounted(() => {
 </script>
 <template>
   <div class="development-page">
-    <!-- =================PAGE HEADER================= -->
+    <!-- =================PAGE HEADER START================= -->
     <BasePageHeader title="Ca làm việc">
       <template #actions>
         <BaseBtn icon="add-white" text="Thêm" @click="handleOpenModal" />
       </template>
     </BasePageHeader>
+    <!-- =================PAGE HEADER END================= -->
 
-    <!-- =================TABLE SHIFT================= -->
+    <!-- =================TABLE SHIFT START================= -->
     <ShiftTable
       :loading="shiftStoreInstance.loading"
       :ids-selected="idsSelected"
@@ -387,7 +415,9 @@ onMounted(() => {
       @handle-change-current-page="paginationRef.pageIndex = $event"
       @open-shift-modal="handleOpenModalUpdate"
     />
-    <!-- =================MODAL SHIFT FORM================= -->
+    <!-- =================TABLE SHIFT END================= -->
+
+    <!-- =================MODAL SHIFT FORM START================= -->
     <BaseModal
       :is-close="shiftModalRef.isClose"
       :modal-title="shiftModalRef.modalTitle"
@@ -434,8 +464,9 @@ onMounted(() => {
         ></BaseBtn>
       </template>
     </BaseModal>
+    <!-- =================MODAL SHIFT FORM END================= -->
 
-    <!-- =================MODAL ERROR================= -->
+    <!-- =================MODAL ERROR START================= -->
     <BaseModal
       :is-close="!(isFormValidateError || shiftStoreInstance.error)"
       :modal-title="formData ? formData.errorModal.title || '' : ''"
@@ -482,6 +513,7 @@ onMounted(() => {
         ></BaseBtn>
       </template>
     </BaseModal>
+    <!-- =================MODAL ERROR END================= -->
   </div>
 </template>
 <style scoped></style>

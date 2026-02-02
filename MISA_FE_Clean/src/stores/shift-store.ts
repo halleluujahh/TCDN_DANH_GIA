@@ -48,11 +48,11 @@ const shiftStore = defineStore("shiftStore", {
       });
     },
     /**
-     * Load shifts with pagination
-     * @param pageSize - number of items per page
-     * @param currentPage - current page number
-     * @returns {Promise<void>}
-     **/
+     * Lấy danh sách ca làm việc với phân trang
+     * @param {Object} params - Tham số phân trang
+     * @returns {Promise<void>} Promise không trả về giá trị
+     * Created By hanv 02/02/2026
+     */
     async loadShifts(params: Object): Promise<void> {
       try {
         this.setLoading(true);
@@ -67,9 +67,13 @@ const shiftStore = defineStore("shiftStore", {
     },
 
     /**
-     * Lấy ca làm việc với phân trang và lọc
-     * @param params
-     * @returns {Promise<void>}
+     * Lấy danh sách ca làm việc với phân trang và lọc
+     * @param {Object} params - Tham số phân trang và filter
+     * @param {number} params.pageSize - Số bản ghi trên trang
+     * @param {number} params.currentPage - Trang hiện tại
+     * @param {filterDTO} params.filter - Điều kiện lọc
+     * @returns {Promise<void>} Promise không trả về giá trị
+     * Created By hanv 02/02/2026
      */
     async loadShiftsWithFilter(params: {
       pageSize: number;
@@ -89,7 +93,9 @@ const shiftStore = defineStore("shiftStore", {
     },
     /**
      * Kích hoạt nhiều ca làm việc
-     * @param ids
+     * @param {Set<string>} ids - Danh sách ID ca làm việc cần kích hoạt
+     * @returns {Promise<void>} Promise không trả về giá trị
+     * Created By hanv 02/02/2026
      */
     async activeMultipleShifts(ids: Set<string>): Promise<void> {
       try {
@@ -104,7 +110,9 @@ const shiftStore = defineStore("shiftStore", {
     },
     /**
      * Hủy kích hoạt nhiều ca làm việc
-     * @param ids
+     * @param {Set<string>} ids - Danh sách ID ca làm việc cần hủy kích hoạt
+     * @returns {Promise<void>} Promise không trả về giá trị
+     * Created By hanv 02/02/2026
      */
     async inactiveMultipleShifts(ids: Set<string>): Promise<void> {
       try {
@@ -119,7 +127,9 @@ const shiftStore = defineStore("shiftStore", {
     },
     /**
      * Xoá nhiều ca làm việc
-     * @param ids
+     * @param {Set<string>} ids - Danh sách ID ca làm việc cần xóa
+     * @returns {Promise<void>} Promise không trả về giá trị
+     * Created By hanv 02/02/2026
      */
     async deleteMultipleShifts(ids: Set<string>): Promise<void> {
       try {
@@ -134,8 +144,9 @@ const shiftStore = defineStore("shiftStore", {
     },
     /**
      * Thêm mới ca làm việc
-     * @param shift
-     * @returns
+     * @param {Shift} shift - Thông tin ca làm việc cần thêm
+     * @returns {Promise<void>} Promise không trả về giá trị
+     * Created By hanv 02/02/2026
      */
     async createShift(shift: Shift): Promise<void> {
       try {
@@ -150,9 +161,10 @@ const shiftStore = defineStore("shiftStore", {
     },
     /**
      * Cập nhật ca làm việc
-     * @param id
-     * @param shift
-     * @returns
+     * @param {string} id - ID ca làm việc cần cập nhật
+     * @param {Shift} shift - Thông tin ca làm việc mới
+     * @returns {Promise<Response<Shift> | undefined>} Kết quả cập nhật hoặc undefined nếu lỗi
+     * Created By hanv 02/02/2026
      */
     async updateShift(
       id: string,

@@ -24,6 +24,7 @@ const emits = defineEmits<ModalEmits>();
 /**
  * Modal reference cho việc drag and positioning
  * @type {HTMLElement}
+ * Created By hanv 02/02/2026
  */
 const modalRef = ref<HTMLElement | null>(null);
 

@@ -12,6 +12,7 @@ export const useShiftTable = () => {
   const store = shiftStore();
   /**
    * Danh sách trạng thái ca làm việc cho combobox
+   * Created By hanv 02/02/2026
    */
   const comboBoxShiftStatus = [
     {
@@ -27,6 +28,7 @@ export const useShiftTable = () => {
   ];
   /**
    * Danh sách tùy chọn sắp xếp và ghim cột cho selectbox group
+   * Created By hanv 02/02/2026
    */
   const selectBoxGroupOptions = [
     {
@@ -64,6 +66,8 @@ export const useShiftTable = () => {
 
   /**
    * Map danh sách ca làm việc sang TableRow để hiển thị trong bảng
+   * @returns {TableRow<Shift>[]} Mảng các dòng dữ liệu cho bảng
+   * Created By hanv 02/02/2026
    */
   const mapShiftToTableRows = computed<TableRow<Shift>[]>(() => {
     return store.rows.map((shift, index) => ({
@@ -75,9 +79,10 @@ export const useShiftTable = () => {
 
   /**
    * Map mảng sắp xếp từ bảng sang DTO lọc và sortOrder trong bảng
-   * @param sortArrayRef
-   * @param filterDTORef
-   * @param table
+   * @param {ColumnSort[]} sortArrayRef - Mảng sắp xếp cột
+   * @param {FilterDTO} filterDTORef - DTO lọc dữ liệu
+   * @param {TableColumn<Shift>[]} table - Danh sách cột trong bảng
+   * Created By hanv 02/02/2026
    */
   const mapSortArrayToFilterDTOFunc = (
     sortArrayRef: ColumnSort[],
@@ -123,8 +128,9 @@ export const useShiftTable = () => {
   };
   /**
    * Map ghim cột từ mảng sang trạng thái ghim cột trong bảng
-   * @param sortArrayRef
-   * @param table
+   * @param {ColumnSort[]} sortArrayRef - Mảng sắp xếp cột
+   * @param {TableColumn<Shift>[]} table - Danh sách cột trong bảng
+   * Created By hanv 02/02/2026
    */
   const mapSortArrayPinToTablePinFunc = (
     sortArrayRef: ColumnSort[],
@@ -142,8 +148,9 @@ export const useShiftTable = () => {
 
   /**
    * Sắp xếp lại cột dựa trên vị trí thực tế và trạng thái ghim
-   * @param table
-   * @returns Sorted TableColumn array
+   * @param {TableColumn<Shift>[]} table - Danh sách cột trong bảng
+   * @returns {TableColumn<Shift>[]} Mảng cột đã được sắp xếp
+   * Created By hanv 02/02/2026
    */
   const columnSortedByPositionFunc = (table: TableColumn<Shift>[]) => {
     if (table.length === 0) return [];
@@ -161,8 +168,9 @@ export const useShiftTable = () => {
 
   /**
    * Sắp xếp lại các dòng dựa trên vị trí cột đã sắp xếp
-   * @param tableSorted
-   * @returns
+   * @param {TableColumn<Shift>[]} tableSorted - Mảng cột đã được sắp xếp
+   * @returns {any[]} Mảng các dòng đã được sắp xếp theo thứ tự cột
+   * Created By hanv 02/02/2026
    */
   const rowSortedByColumnPositionFunc = (tableSorted: TableColumn<Shift>[]) => {
     const sortedRows = mapShiftToTableRows.value.map((row) => {
@@ -185,8 +193,9 @@ export const useShiftTable = () => {
 
   /**
    * Map mảng lọc từ bảng sang DTO lọc
-   * @param filterArrayRef
-   * @param filterDTORef
+   * @param {ColumnFilterModal[]} filterArrayRef - Mảng lọc cột
+   * @param {FilterDTO} filterDTORef - DTO lọc dữ liệu
+   * Created By hanv 02/02/2026
    */
   const mapFilterArrayToFilterDTOFunc = (
     filterArrayRef: ColumnFilterModal[],

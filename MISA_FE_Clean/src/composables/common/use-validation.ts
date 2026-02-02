@@ -8,6 +8,7 @@ export const useValidation = () => {
    * Kiểm tra giá trị có rỗng không
    * @param {*} value - Giá trị cần kiểm tra
    * @returns {boolean} true nếu rỗng, false nếu có giá trị
+   * Created By hanv 02/02/2026
    */
   const isEmpty = (value: any) => {
     if (value === null || value === undefined) return true;
@@ -21,6 +22,7 @@ export const useValidation = () => {
    * @param {*} value1 - Giá trị thứ nhất
    * @param {*} value2 - Giá trị thứ hai
    * @returns {boolean} true nếu bằng nhau
+   * Created By hanv 02/02/2026
    */
   const isEqual = (value1: any, value2: any) => {
     return value1 === value2;
@@ -32,6 +34,7 @@ export const useValidation = () => {
    * @param {string} startTime - Thời gian bắt đầu (HH:MM)
    * @param {string} endTime - Thời gian kết thúc (HH:MM)
    * @returns {boolean} true nếu nằm trong khoảng
+   * Created By hanv 02/02/2026
    */
   const isTimeInRange = (time: string, startTime: string, endTime: string) => {
     if (!time || !startTime || !endTime) return false;
@@ -60,6 +63,7 @@ export const useValidation = () => {
    * Kiểm tra email hợp lệ
    * @param {string} email - Email cần kiểm tra
    * @returns {boolean} true nếu email hợp lệ
+   * Created By hanv 02/02/2026
    */
   const isValidEmail = (email: string) => {
     if (isEmpty(email)) return false;
@@ -71,6 +75,7 @@ export const useValidation = () => {
    * Kiểm tra số điện thoại hợp lệ (Việt Nam)
    * @param {string} phone - Số điện thoại cần kiểm tra
    * @returns {boolean} true nếu số điện thoại hợp lệ
+   * Created By hanv 02/02/2026
    */
   const isValidPhone = (phone: string) => {
     if (isEmpty(phone)) return false;
@@ -84,6 +89,7 @@ export const useValidation = () => {
    * @param {number} minLength - Độ dài tối thiểu
    * @param {number} maxLength - Độ dài tối đa
    * @returns {boolean} true nếu độ dài hợp lệ
+   * Created By hanv 02/02/2026
    */
   const isValidLength = (
     value: string,
@@ -101,6 +107,7 @@ export const useValidation = () => {
    * @param {number} min - Giá trị tối thiểu
    * @param {number} max - Giá trị tối đa
    * @returns {boolean} true nếu nằm trong khoảng
+   * Created By hanv 02/02/2026
    */
   const isInRange = (value: number, min: number, max: number) => {
     const num = Number(value);
@@ -112,6 +119,7 @@ export const useValidation = () => {
    * Tạo thông báo lỗi cho trường bắt buộc
    * @param {string} fieldName - Tên trường
    * @returns {string} Thông báo lỗi
+   * Created By hanv 02/02/2026
    */
   const getRequiredMessage = (fieldName: string) => {
     return `${fieldName} không được để trống.`;
@@ -122,6 +130,7 @@ export const useValidation = () => {
    * @param {string} fieldName - Tên trường
    * @param {string} reason - Lý do không hợp lệ
    * @returns {string} Thông báo lỗi
+   * Created By hanv 02/02/2026
    */
   const getInvalidMessage = (fieldName: string, reason = "không hợp lệ") => {
     return `${fieldName} ${reason}.`;

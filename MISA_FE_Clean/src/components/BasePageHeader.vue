@@ -4,6 +4,7 @@ import { defineProps } from "vue";
 
 /**
  * BasePageHeader - Header trang với tiêu đề
+ * Created By hanv 02/02/2026
  */
 const props = defineProps<{
   // Tiêu đề trang

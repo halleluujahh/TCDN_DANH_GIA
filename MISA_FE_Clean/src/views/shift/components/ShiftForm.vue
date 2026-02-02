@@ -21,12 +21,14 @@ interface ShiftFormProps {
 const props = defineProps<ShiftFormProps>();
 /**
  * Hàm lấy phương thức tính toán thời gian làm việc từ composable useShiftForm
+ * Created By hanv 02/02/2026
  */
 const { isEmpty, isEqual, isTimeInRange, calcWorkingHours, validateModalForm } =
   useShiftForm();
 
 /**
  * Tham số truyền vào form
+ * Created By hanv 02/02/2026
  */
 const formRef = ref<FormData>({
   formInputFields: [
@@ -212,6 +214,7 @@ const timeRef = ref({
 /**
  * Tính toán thời gian làm việc và thời gian nghỉ giữa ca
  * Cập nhật giá trị vào timeRef và các trường tương ứng trong modal
+ * Created By hanv 02/02/2026
  */
 function calculateTimeToHours() {
   // Lấy giá trị thời gian từ các trường trong modal
@@ -294,7 +297,8 @@ function calculateTimeToHours() {
 
 /**
  * Xử lý khi thay đổi giá trị trạng thái
- * @param value
+ * @param {any} value - Giá trị trạng thái
+ * Created By hanv 02/02/2026
  */
 const handleChangeValueStatus = (value: any) => {
   formRef.value.formInputFields.forEach((group: any) => {
@@ -319,6 +323,7 @@ const handleChangeValueStatus = (value: any) => {
  * - Required fields (Mã ca, Tên ca, Giờ vào/hết ca)
  * - Business rules (Giờ hết ca != Giờ vào ca, thời gian nghỉ trong khoảng hợp lệ)
  * @returns {boolean} - true nếu dữ liệu hợp lệ
+ * Created By hanv 02/02/2026
  */
 function validateShiftModal(): boolean {
   // Định nghĩa các rule validate nghiệp vụ
@@ -430,6 +435,10 @@ function validateShiftModal(): boolean {
   return result;
 }
 
+/**
+ * Xóa dữ liệu trong form
+ * Created By hanv 02/02/2026
+ */
 const clearForm = () => {
   formRef.value.formInputFields.forEach((group) => {
     group.formItems.forEach((item: any) => {
@@ -448,9 +457,11 @@ const clearForm = () => {
     });
   });
 };
+
 /**
  * Set dữ liệu vào form
- * @param row
+ * @param {TableRow<Shift>} row - Dòng dữ liệu ca làm việc
+ * Created By hanv 02/02/2026
  */
 const setData = (row: TableRow<Shift>) => {
   formRef.value.formInputFields.map((field) => {
@@ -490,6 +501,10 @@ const setData = (row: TableRow<Shift>) => {
     });
   });
 };
+/**
+ * Định nghĩa các phương thức được expose ra bên ngoài
+ * Created By hanv 02/02/2026
+ */
 defineExpose({
   getData: () => ({ ...formRef.value }),
   validateShiftModal,
@@ -498,7 +513,8 @@ defineExpose({
 
 /**
  * Set dữ liệu vào form
- * @param row Dòng dữ liệu ca làm việc
+ * @param {TableRow<Shift>} row - Dòng dữ liệu ca làm việc
+ * Created By hanv 02/02/2026
  */
 onMounted(() => {
   clearForm();

@@ -126,6 +126,7 @@ const props = defineProps<BaseSideBarProps>();
 /**
  * Danh sách menu items
  * @type {Array<MenuItem>}
+ * Created By hanv 02/02/2026
  */
 const menuItemsClone = ref<MenuItem[] | undefined>(cloneDeep(props.menuItems));
 
@@ -227,7 +228,7 @@ function closePopupBefore(index: number, subIndex: number = -1) {
 /**
  * Toggle submenu mở/đóng của menu item
  * @param {Number} index - Index của menu item
- * Created By hanv 20/01/2026
+ * Created By hanv 02/02/2026
  */
 function toggleSubMenuItem(index: number) {
   if (!menuItemsClone.value) return;
@@ -248,6 +249,12 @@ function toggleSubMenuItem(index: number) {
 
   item.isActive = true;
 }
+/**
+ * Xử lý khi chuột hover vào submenu item
+ * @param {MouseEvent} e - Mouse enter event
+ * @param {Number} index - Index của menu item
+ * Created By hanv 02/02/2026
+ */
 function onMouseEnterSubMenu(e: MouseEvent, index: number) {
   if (!menuItemsClone.value) return;
   
@@ -292,6 +299,12 @@ function onMouseEnterSubMenu(e: MouseEvent, index: number) {
     left: `${left}px`,
   };
 }
+/**
+ * Xử lý khi chuột rời khỏi submenu item
+ * @param {MouseEvent} _e - Mouse leave event
+ * @param {Number} index - Index của menu item
+ * Created By hanv 02/02/2026
+ */
 function onMouseLeaveSubMenu(_e: MouseEvent, index: number) {
   if (!menuItemsClone.value) return;
 
@@ -304,6 +317,12 @@ function onMouseLeaveSubMenu(_e: MouseEvent, index: number) {
     item.subMenu.isOpen = false;
   }, 1000);
 }
+/**
+ * Xử lý khi chuột hover vào popup menu outside
+ * @param {MouseEvent} e - Mouse enter event
+ * @param {Number} index - Index của menu item
+ * Created By hanv 02/02/2026
+ */
 function onMouseEnterPopupMenuOutside(e: MouseEvent, index: number) {
   if (!menuItemsClone.value) return;
 
@@ -346,6 +365,12 @@ function onMouseEnterPopupMenuOutside(e: MouseEvent, index: number) {
     left: `${left}px`,
   };
 }
+/**
+ * Xử lý khi chuột rời khỏi popup menu outside
+ * @param {MouseEvent} _e - Mouse leave event
+ * @param {Number} index - Index của menu item
+ * Created By hanv 02/02/2026
+ */
 function onMouseLeavePopupMenuOutside(_e: MouseEvent, index: number) {
   if (!menuItemsClone.value) return;
 
@@ -360,6 +385,13 @@ function onMouseLeavePopupMenuOutside(_e: MouseEvent, index: number) {
     }
   }, 1000);
 }
+/**
+ * Xử lý khi chuột hover vào popup menu inside
+ * @param {MouseEvent} e - Mouse enter event
+ * @param {Number} index - Index của menu item
+ * @param {Number} subIndex - Index của submenu item
+ * Created By hanv 02/02/2026
+ */
 function onMouseEnterPopupMenuInside(e: MouseEvent, index: number, subIndex: number) {
   if (!menuItemsClone.value) return;
 
@@ -409,6 +441,13 @@ function onMouseEnterPopupMenuInside(e: MouseEvent, index: number, subIndex: num
 
   popupMenu.style = style as { top: string; left: string };
 }
+/**
+ * Xử lý khi chuột rời khỏi popup menu inside
+ * @param {MouseEvent} _e - Mouse leave event
+ * @param {Number} index - Index của menu item
+ * @param {Number} subIndex - Index của submenu item
+ * Created By hanv 02/02/2026
+ */
 function onMouseLeavePopupMenuInside(_e: MouseEvent, index: number, subIndex: number) {
   if (!menuItemsClone.value) return;
 
@@ -422,6 +461,13 @@ function onMouseLeavePopupMenuInside(_e: MouseEvent, index: number, subIndex: nu
     popupMenu.isOpen = false;
   }, 1000);
 }
+/**
+ * Set trạng thái active cho menu item
+ * @param {Number} index - Index của menu item
+ * @param {Number} subIndex - Index của submenu item
+ * @param {String | null} route - Route được chọn
+ * Created By hanv 02/02/2026
+ */
 function isActive(index: number, subIndex: number, route: string | null) {
   if (!menuItemsClone.value) return;
 
@@ -450,6 +496,10 @@ function isActive(index: number, subIndex: number, route: string | null) {
     subMenuItem.popupMenu.popupMenuItemRouter = route;
   }
 }
+/**
+ * Toggle sidebar collapse state
+ * Created By hanv 02/02/2026
+ */
 function toggleCollapse() {
   unactiveAllMenuItems();
   // Cập nhật lại trạng thái isActive của menu items

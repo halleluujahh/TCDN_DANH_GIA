@@ -32,7 +32,8 @@ const errorMessage = ref(props.error !== undefined ? props.error : "");
 
 /**
  * Kiểm tra và xử lý trống
- * @param event
+ * @param {FocusEvent} event - Sự kiện blur
+ * Created By hanv 02/02/2026
  */
 const handleBlur = (event: FocusEvent) => {
   const target = event.target as HTMLInputElement;

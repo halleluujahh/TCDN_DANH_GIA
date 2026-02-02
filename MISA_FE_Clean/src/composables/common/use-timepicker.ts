@@ -1,7 +1,8 @@
 /**
- * Định dạng chuỗi thời gian tự do thành HH:MM (có thể rỗng nếu chưa đủ ký tự).
- * @param {string} value - Chuỗi nhập vào.
- * @returns {string} Chuỗi HH:MM sau khi chuẩn hóa.
+ * Định dạng chuỗi thời gian tự do thành HH:MM (có thể rỗng nếu chưa đủ ký tự)
+ * @param {string} value - Chuỗi nhập vào
+ * @returns {string} Chuỗi HH:MM sau khi chuẩn hóa
+ * Created By hanv 02/02/2026
  */
 export const formatTime = (value: string | number): string => {
   if (!value) return "";
@@ -29,9 +30,10 @@ export const formatTime = (value: string | number): string => {
   return minute ? `${hour}:${minute}` : hour;
 };
 /**
- * Chuẩn hóa thời gian thành HH:MM luôn hợp lệ, tự padding và giới hạn 23:59.
- * @param {string|number} value - Giá trị thời gian nhập vào.
- * @returns {string} Chuỗi HH:MM hợp lệ.
+ * Chuẩn hóa thời gian thành HH:MM luôn hợp lệ, tự padding và giới hạn 23:59
+ * @param {string|number} value - Giá trị thời gian nhập vào
+ * @returns {string} Chuỗi HH:MM hợp lệ
+ * Created By hanv 02/02/2026
  */
 export const formatTimeAlwaysValid = (value: string | number): string => {
   if (value === null || value === undefined || value === "") return "";

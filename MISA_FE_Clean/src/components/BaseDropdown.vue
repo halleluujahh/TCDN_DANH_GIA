@@ -3,6 +3,11 @@ import BaseBtn from "./BaseBtn.vue";
 import BaseInput from "./BaseInput.vue";
 import { defineProps, defineEmits } from "vue";
 
+/**
+ * BaseDropdown Component - Dropdown tái sử dụng
+ * Hiển thị nội dung dropdown với title và footer
+ * Created By hanv 02/02/2026
+ */
 interface DropdownProps {
   isClose: boolean;
   dropdownTitle?: string;

@@ -2,6 +2,11 @@
 // @ts-ignore
 import { defineProps, ref, defineEmits } from "vue";
 
+/**
+ * BaseRadioButton Component - Radio button tái sử dụng
+ * Hỗ trợ nhiều lựa chọn với text và value
+ * Created By hanv 02/02/2026
+ */
 interface BaseRadioButtonProps {
   // Thuộc tính input
   fieldName?: string;

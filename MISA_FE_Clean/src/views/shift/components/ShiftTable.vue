@@ -23,11 +23,9 @@ import type { Pagination } from "../../../types/ui/pagination";
 import { calculatePositionMenu } from "../../../composables/common/use-position";
 // @ts-ignore
 import BaseInput from "../../../components/BaseInput.vue";
-import BaseSelectbox from "../../../components/BaseSelectbox.vue";
 import type { FilterDTO } from "../../../types/DTO/shift/filter-dto";
 import { tableHeaders } from "../../../data/table-header";
 import { useAppStore } from "../../../stores/app-store";
-import ShiftToolbar from "./ShiftToolbar.vue";
 
 const appStore = useAppStore();
 // =====================TYPE DEFINITIONS START=====================
@@ -63,16 +61,19 @@ interface TableEmits<T> {
 // =====================REACTIVITY START========================
 /**
  * Định nghĩa cột cho bảng ca làm việc
+ * Created By hanv 02/02/2026
  */
 const columns = ref<TableColumn<Shift>[]>(
   appStore.tableHeaders as TableColumn<Shift>[],
 );
 /**
  * Mảng lọc dữ liệu cho cột
+ * Created By hanv 02/02/2026
  */
 const filterArrayRef = ref<ColumnFilterModal[]>([]);
 /**
  * Mảng sắp xếp cột
+ * Created By hanv 02/02/2026
  */
 const sortArrayRef = ref<ColumnSort[]>([]);
 // =====================REACTIVITY END========================
@@ -80,6 +81,7 @@ const sortArrayRef = ref<ColumnSort[]>([]);
 // =====================COMPOSABLES START=======================
 /**
  * Lấy dữ liệu bảng ca làm việc
+ * Created By hanv 02/02/2026
  */
 const {
   comboBoxShiftStatus,
@@ -99,8 +101,9 @@ const emits = defineEmits<TableEmits<Shift>>();
 // =====================METHODS START========================
 /**
  * Mở modal lọc dữ liệu cho cột
- * @param event
- * @param column
+ * @param {Event} event - Sự kiện
+ * @param {TableColumn<Shift>} column - Cột bảng
+ * Created By hanv 02/02/2026
  */
 const handleOpenModalFilterColumn = (
   event: Event,
@@ -142,6 +145,7 @@ const handleOpenModalFilterColumn = (
 };
 /**
  * Đóng modal lọc dữ liệu cho cột
+ * Created By hanv 02/02/2026
  */
 const closeDropdownFilterColumn = () => {
   filterArrayRef.value.map((item: ColumnFilterModal) => {
@@ -152,6 +156,7 @@ const closeDropdownFilterColumn = () => {
 };
 /**
  * Bỏ lọc dữ liệu cho cột
+ * Created By hanv 02/02/2026
  */
 const removeDropdownFilterColumn = () => {
   filterArrayRef.value.map((item: ColumnFilterModal, idx: number) => {
@@ -164,8 +169,9 @@ const removeDropdownFilterColumn = () => {
 };
 /**
  * Mở modal nhóm tùy chọn cho cột
- * @param event
- * @param column
+ * @param {Event} event - Sự kiện
+ * @param {TableColumn<Shift>} column - Cột bảng
+ * Created By hanv 02/02/2026
  */
 const handleOpenComboboxGroupOptionColumn = (
   event: Event,
@@ -198,6 +204,7 @@ const handleOpenComboboxGroupOptionColumn = (
 };
 /**
  * Đóng select box sắp xếp cho cột
+ * Created By hanv 02/02/2026
  */
 const closeSortColumn = () => {
   sortArrayRef.value.map((item: ColumnSort) => {
@@ -208,6 +215,7 @@ const closeSortColumn = () => {
 };
 /**
  * Hàm lọc dữ liệu theo cột
+ * Created By hanv 02/02/2026
  */
 const handleFilterByColumn = () => {
   emits("filter-change", filterArrayRef.value);
@@ -215,7 +223,8 @@ const handleFilterByColumn = () => {
 };
 /**
  * Xóa điều kiện lọc tại vị trí index
- * @param index
+ * @param {number} index - Chỉ số điều kiện lọc
+ * Created By hanv 02/02/2026
  */
 const handleRemoveConditionFilter = (index: number) => {
   filterArrayRef.value.splice(index, 1);
@@ -223,6 +232,7 @@ const handleRemoveConditionFilter = (index: number) => {
 };
 /**
  * Xóa tất cả điều kiện lọc
+ * Created By hanv 02/02/2026
  */
 const handleRemoveAllFilter = () => {
   filterArrayRef.value = [];
@@ -233,6 +243,7 @@ const handleRemoveAllFilter = () => {
 // =====================COMPUTED START=====================
 /**
  * Lấy modal lọc dữ liệu cho cột hiện tại
+ * Created By hanv 02/02/2026
  */
 const filterRef = computed<ColumnFilterModal>(
   () =>
@@ -251,6 +262,7 @@ const filterRef = computed<ColumnFilterModal>(
 
 /**
  * Lấy thông tin sắp xếp cột hiện tại
+ * Created By hanv 02/02/2026
  */
 const sortRef = computed<ColumnSort>(
   () =>
@@ -264,14 +276,16 @@ const sortRef = computed<ColumnSort>(
 );
 /**
  * Các cột trong bảng được sắp xếp theo vị trí
- * @return TableColumn<Shift>[]
+ * @return {TableColumn<Shift>[]} - Danh sách cột được sắp xếp
+ * Created By hanv 02/02/2026
  */
 const columnSortedByPosition = computed<TableColumn<Shift>[]>(() => {
   return columnSortedByPositionFunc(columns.value);
 });
 /**
  * Các hàng trong bảng được sắp xếp theo vị trí cột
- * @return TableRow<Shift>[]
+ * @return {TableRow<Shift>[]} - Danh sách hàng được sắp xếp
+ * Created By hanv 02/02/2026
  */
 const rowDataItemsSortedByPosition = computed<TableRow<Shift>[]>(() => {
   return rowSortedByColumnPositionFunc(columnSortedByPosition.value);
@@ -281,6 +295,7 @@ const rowDataItemsSortedByPosition = computed<TableRow<Shift>[]>(() => {
 // =====================WATCH START=====================
 /**
  * Watch thay đổi mảng sắp xếp cột
+ * Created By hanv 02/02/2026
  */
 watch(
   () =>
@@ -308,6 +323,7 @@ watch(
 );
 /**
  * Watch thay đổi mảng ghim cột
+ * Created By hanv 02/02/2026
  */
 watch(
   () =>
@@ -328,7 +344,6 @@ watch(
     mapSortArrayPinToTablePinFunc(sortArrayRef.value, columns.value);
   },
 );
-
 // =====================WATCH END=====================
 </script>
 <template>

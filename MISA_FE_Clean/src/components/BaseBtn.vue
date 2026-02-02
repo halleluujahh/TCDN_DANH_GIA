@@ -13,6 +13,7 @@ const props = defineProps({
   /**
    * Tên icon sử dụng (các kiểu: add-white, trash, reload, pencil, etc.)
    * @type {String}
+   * Created By hanv 02/02/2026
    */
   icon: {
     type: String,
@@ -21,6 +22,7 @@ const props = defineProps({
   /**
    * Text hiển thị trên nút
    * @type {String}
+   * Created By hanv 02/02/2026
    */
   text: {
     type: String,
@@ -29,6 +31,7 @@ const props = defineProps({
   /**
    * Kiểu button (solid-brand, outline-neutral, outline-danger, etc.)
    * @type {String}
+   * Created By hanv 02/02/2026
    */
   type: {
     type: String,
@@ -37,6 +40,7 @@ const props = defineProps({
   /**
    * Trạng thái disabled của nút
    * @type {Boolean}
+   * Created By hanv 02/02/2026
    */
   isDisabled: {
     type: Boolean,
@@ -45,6 +49,7 @@ const props = defineProps({
   /**
    * Ẩn border của nút
    * @type {Boolean}
+   * Created By hanv 02/02/2026
    */
   isHideBorder: {
     type: Boolean,
@@ -53,6 +58,7 @@ const props = defineProps({
   /**
    * Kiểu nút hành động trong bảng
    * @type {Boolean}
+   * Created By hanv 02/02/2026
    */
   isBtnActionTable: {
     type: Boolean,
@@ -61,6 +67,7 @@ const props = defineProps({
   /**
    * Kiểu nút phân trang
    * @type {Boolean}
+   * Created By hanv 02/02/2026
    */
   isBtnPagination: {
     type: Boolean,
@@ -69,6 +76,7 @@ const props = defineProps({
   /**
    * Tooltip text hiển thị khi hover nút
    * @type {String}
+   * Created By hanv 02/02/2026
    */
   tooltipText: {
     type: String,
@@ -77,6 +85,7 @@ const props = defineProps({
   /**
    * Kích thước icon (icon16, icon20, icon24)
    * @type {String}
+   * Created By hanv 02/02/2026
    */
   iconSize: {
     type: String,
@@ -85,6 +94,7 @@ const props = defineProps({
   /**
    * Padding giữa icon và text
    * @type {String}
+   * Created By hanv 02/02/2026
    */
   paddingTextIcon: {
     type: String,
@@ -93,6 +103,7 @@ const props = defineProps({
   /**
    * Bỏ padding mặc định của nút
    * @type {Boolean}
+   * Created By hanv 02/02/2026
    */
   isNoPadding: {
     type: Boolean,
@@ -103,6 +114,7 @@ const props = defineProps({
 /**
  * Emit click event khi người dùng nhấn nút
  * @event click
+ * Created By hanv 02/02/2026
  */
 const emit = defineEmits(["click"]);
 </script>
