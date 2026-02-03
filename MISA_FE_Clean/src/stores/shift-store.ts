@@ -44,6 +44,8 @@ const shiftStore = defineStore("shiftStore", {
         if (shift.shiftId === id) {
           return { ...updatedShift };
         }
+        console.log(this.rows);
+        
         return shift;
       });
     },
@@ -173,7 +175,7 @@ const shiftStore = defineStore("shiftStore", {
       try {
         this.setLoading(true);
         const updatedShift = await shiftService.update(id, shift);
-        this.updateRow(id, shift);
+        this.updateRow(id, updatedShift.data as Shift);
         return updatedShift;
       } catch (error: any) {
         this.setError(error.data.errors.ErrorMessage);

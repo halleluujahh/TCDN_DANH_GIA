@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import type { Shift } from "../types/models/shift/shift";
+// @ts-ignore
+import { defineProps, defineEmits } from "vue";
+import type { TableRow } from "../types/ui/table-row";
+
 /**
  * BaseSelectBox Component - Menu select box tái sử dụng
  * Hiển thị danh sách menu items với icon, text và action
@@ -21,8 +26,7 @@ interface BaseSelectboxProps {
    */
   selectBoxItems: Array<{
     text: string;
-    value: string | number;
-    isSelected: boolean;
+    value: any;
     icon: string;
     isHasMenuBorder?: boolean;
   }>;
@@ -30,7 +34,7 @@ interface BaseSelectboxProps {
 }
 interface BaseSelectboxEmits {
   (e: "close"): void;
-  (e: "select", value: string | number): void;
+  (e: "select", value: any): void;
 }
 const props = defineProps<BaseSelectboxProps>();
 const emit = defineEmits<BaseSelectboxEmits>();
@@ -40,9 +44,9 @@ const emit = defineEmits<BaseSelectboxEmits>();
  * @param {String | Number} value - Giá trị được chọn
  * Created By hanv 02/02/2026
  */
-const handleChange = (value: string | number | undefined) => {
-  if (value !== undefined) {
-    emit("select", value);
+const handleChange = (item: any) => {
+  if (item !== undefined && item !== null) {
+    emit("select", item);
     emit("close");
   }
 };
@@ -57,7 +61,7 @@ const handleChange = (value: string | number | undefined) => {
     <div v-for="(item, indexItem) in selectBoxItems" :key="`item-${indexItem}`">
       <li
         class="menu-wrapper-item flex menu-wrapper-item-icon menu-item-feture"
-        @click="handleChange(item.value)"
+        @click="handleChange(item)"
       >
         <div
           :class="['icon16', 'menu-item-ic', 'icon16', `icon-${item.icon}`]"

@@ -124,6 +124,7 @@ useShortCut("esc", () => {
             >
               <div class="title-left">
                 <span
+                  v-if="props.iconTitle"
                   :class="['icon20', 'mr-2', 'icon-' + props.iconTitle]"
                 ></span>
                 <div class="title">{{ props.modalTitle }}</div>
@@ -133,7 +134,7 @@ useShortCut("esc", () => {
               </div>
             </div>
             <div class="subHeader">
-               <slot name="messageError"></slot>
+              <slot name="messageError"></slot>
             </div>
             <div class="modal__content flex-column flex1">
               <span

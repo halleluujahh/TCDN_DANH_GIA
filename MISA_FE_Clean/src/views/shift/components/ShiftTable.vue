@@ -24,8 +24,12 @@ import { calculatePositionMenu } from "../../../composables/common/use-position"
 // @ts-ignore
 import BaseInput from "../../../components/BaseInput.vue";
 import type { FilterDTO } from "../../../types/DTO/shift/filter-dto";
-import { tableHeaders } from "../../../data/table-header";
 import { useAppStore } from "../../../stores/app-store";
+// @ts-ignore
+import BaseSelectbox from "../../../components/BaseSelectbox.vue";
+import type { MoreMenuOption } from "../../../types/ui/more-menu";
+// @ts-ignore
+import ShiftToolbar from "./ShiftToolbar.vue";
 
 const appStore = useAppStore();
 // =====================TYPE DEFINITIONS START=====================
@@ -55,6 +59,10 @@ interface TableEmits<T> {
   (e: "removeAllConditionFilter"): void;
   (e: "handleChangeCurrentPage", pageIndex: number): void;
   (e: "openShiftModal", row: TableRow<Shift>): void;
+  (e: "openShiftModalClonable", row: TableRow<Shift>): void;
+  (e: "active", id: string[]): void;
+  (e: "inactive", id: string[]): void;
+  (e: "delete", id: string[]): void;
 }
 // =====================TYPE DEFINITIONS END=====================
 
@@ -76,6 +84,11 @@ const filterArrayRef = ref<ColumnFilterModal[]>([]);
  * Created By hanv 02/02/2026
  */
 const sortArrayRef = ref<ColumnSort[]>([]);
+/**
+ * Trạng thái mở menu thao tác thêm
+ * Created By hanv 03/02/2026
+ */
+const openMoreMenuRef = ref<MoreMenuOption>({ isOpen: false, style: {} });
 // =====================REACTIVITY END========================
 
 // =====================COMPOSABLES START=======================
@@ -86,6 +99,7 @@ const sortArrayRef = ref<ColumnSort[]>([]);
 const {
   comboBoxShiftStatus,
   selectBoxGroupOptions,
+  moreMenuOptions,
   mapSortArrayPinToTablePinFunc,
   columnSortedByPositionFunc,
   rowSortedByColumnPositionFunc,
@@ -238,6 +252,27 @@ const handleRemoveAllFilter = () => {
   filterArrayRef.value = [];
   emits("removeAllConditionFilter");
 };
+/**
+ * Mở menu thao tác thêm
+ * @param event
+ * @param row
+ * Created By hanv 03/02/2026
+ */
+const toggleMoreMenu = (event: Event, row: TableRow<Shift>) => {
+  // Xử lý mở menu
+  moreMenuOptions.forEach((item, index) => {
+    if (index === 1)
+      item.text =
+        row.data.shiftStatus === CONSTANTS.STATUS_SHIFT.Active
+          ? CONSTANTS.STATUS_SHIFT[0]
+          : CONSTANTS.STATUS_SHIFT[1];
+    item.value = row;
+    openMoreMenuRef.value.isOpen = !openMoreMenuRef.value.isOpen;
+    openMoreMenuRef.value.style = calculatePositionMenu(
+      event as Event,
+    ) as Record<string, string>;
+  });
+};
 // =====================METHODS END========================
 
 // =====================COMPUTED START=====================
@@ -355,6 +390,7 @@ watch(
       :loading="props.loading"
       :ids-selected="props.idsSelected"
       :pagination="props.pagination"
+      :filter-array-ref="filterArrayRef"
       @toggle-check="emits('toggle-check', $event)"
       @toggle-check-all="emits('toggle-check-all', $event)"
       @filter-change="handleOpenModalFilterColumn"
@@ -389,6 +425,7 @@ watch(
           icon="feature-more-blue"
           :isHideBorder="true"
           :isBtnActionTable="true"
+          @click="toggleMoreMenu($event, row)"
         />
       </template>
     </BaseTable>
@@ -399,19 +436,50 @@ watch(
       :is-open="sortRef.isOpen"
       @close="closeSortColumn"
       :select-box-items="selectBoxGroupOptions"
-      textDisplay="Sắp xếp cột"
       @select="
-        (value: string | number) => {
-          if (value === `pin` || value === `unpin`) {
-            sortRef.isPin = value === `pin` ? true : false;
+        (item: any) => {
+          if (item.value === `pin` || item.value === `unpin`) {
+            sortRef.isPin = item.value === `pin` ? true : false;
             return;
           }
-          sortRef.order = Number(value);
+          sortRef.order = Number(item.value);
         }
       "
       :style="sortRef.style"
     />
     <!-- ====================SORT COLUMN END==================== -->
+
+    <!-- ====================MORE MENU START==================== -->
+    <BaseSelectbox
+      :is-open="openMoreMenuRef.isOpen"
+      @close="openMoreMenuRef.isOpen = false"
+      @select="
+        (item: any) => {
+          switch (item.icon) {
+            case 'duplicate':
+              // Xử lý nhân bản
+              emits('openShiftModalClonable', item.value as TableRow<Shift>);
+              break;
+            case 'empty':
+              if (item.text === CONSTANTS.STATUS_SHIFT[1]) {
+                // Xử lý chuyển sang trạng thái active
+                emits('active', [item.value.data.shiftId]);
+              } else {
+                // Xử lý chuyển sang trạng thái inactive
+                emits('inactive', [item.value.data.shiftId]);
+              }
+              break;
+            case 'trash':
+              // Xử lý xóa
+              emits('delete', [item.value.data.shiftId]);
+              break;
+          }
+        }
+      "
+      :select-box-items="moreMenuOptions"
+      :style="openMoreMenuRef.style"
+    />
+    <!-- ====================MORE MENU END==================== -->
 
     <!-- ====================DROPDOWN FILTER COLUMN START==================== -->
     <BaseDropdown

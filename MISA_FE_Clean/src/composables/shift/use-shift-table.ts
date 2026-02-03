@@ -47,20 +47,34 @@ export const useShiftTable = () => {
       text: `Giảm dần`,
       icon: `arrow-down`,
       value: CONSTANTS.SORT_TYPE.Descending,
-      isSelected: false,
       isHasMenuBorder: true,
     },
     {
       text: `Ghim cột`,
       icon: `pin`,
       value: `pin`,
-      isSelected: false,
     },
     {
       text: `Bỏ ghim cột`,
       icon: `unpin`,
       value: `unpin`,
-      isSelected: false,
+    },
+  ];
+  const moreMenuOptions = [
+    {
+      text: `Nhân bản`,
+      icon: `duplicate`,
+      value: null as TableRow<Shift> | null,
+    },
+    {
+      text: `Hoạt động`,
+      icon: `empty`,
+      value: null as TableRow<Shift> | null,
+    },
+    {
+      text: `Xóa`,
+      icon: `trash`,
+      value: null as TableRow<Shift> | null,
     },
   ];
 
@@ -70,7 +84,7 @@ export const useShiftTable = () => {
    * Created By hanv 02/02/2026
    */
   const mapShiftToTableRows = computed<TableRow<Shift>[]>(() => {
-    return store.rows.map((shift, index) => ({
+    return store.rows.map((shift) => ({
       key: shift.shiftId,
       data: shift,
       isSelected: false,
@@ -244,6 +258,7 @@ export const useShiftTable = () => {
     mapShiftToTableRows,
     comboBoxShiftStatus,
     selectBoxGroupOptions,
+    moreMenuOptions,
     mapSortArrayToFilterDTOFunc,
     mapSortArrayPinToTablePinFunc,
     columnSortedByPositionFunc,

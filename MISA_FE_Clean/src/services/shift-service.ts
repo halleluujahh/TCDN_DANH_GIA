@@ -53,7 +53,7 @@ export class ShiftService implements BaseService<Shift> {
    * Created By hanv 02/02/2026
    */
   async update(id: string, item: Shift): Promise<Response<Shift>> {
-    return await shiftApi.put(`update/${id}`, item);
+    return await shiftApi.put(`/update/${id}`, item);
   }
   
   /**

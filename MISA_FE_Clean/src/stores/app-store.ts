@@ -579,7 +579,7 @@ export const useAppStore = defineStore("app", () => {
   // Định nghĩa bảng ca làm việc
   const tableHeaders = ref([
     {
-      key: "shiftId",
+      key: CONSTANTS.COLUMN_NAME_SHIFT.ShiftId,
       title: "Id ca",
       type: "text",
       sortable: true,
@@ -588,7 +588,7 @@ export const useAppStore = defineStore("app", () => {
       realPos: 0,
     },
     {
-      key: "shiftCode",
+      key: CONSTANTS.COLUMN_NAME_SHIFT.ShiftCode,
       title: "Mã ca",
       type: "text",
       width: "120px",
@@ -605,7 +605,7 @@ export const useAppStore = defineStore("app", () => {
       expandable: true,
     },
     {
-      key: "shiftName",
+      key: CONSTANTS.COLUMN_NAME_SHIFT.ShiftName,
       title: "Tên ca",
       type: "text",
       width: "250px",
@@ -622,7 +622,7 @@ export const useAppStore = defineStore("app", () => {
       expandable: true,
     },
     {
-      key: "shiftBeginTime",
+      key: CONSTANTS.COLUMN_NAME_SHIFT.ShiftBeginTime,
       title: "Giờ vào ca",
       type: "time",
       width: "150px",
@@ -641,7 +641,7 @@ export const useAppStore = defineStore("app", () => {
       expandable: true,
     },
     {
-      key: "shiftEndTime",
+      key: CONSTANTS.COLUMN_NAME_SHIFT.ShiftEndTime,
       title: "Giờ hết ca",
       type: "time",
       width: "150px",
@@ -660,7 +660,7 @@ export const useAppStore = defineStore("app", () => {
       expandable: true,
     },
     {
-      key: "shiftBeginBreakTime",
+      key: CONSTANTS.COLUMN_NAME_SHIFT.ShiftBeginBreakTime,
       title: "Bắt đầu nghỉ giữa ca",
       type: "time",
       width: "220px",
@@ -679,7 +679,7 @@ export const useAppStore = defineStore("app", () => {
       expandable: true,
     },
     {
-      key: "shiftEndBreakTime",
+      key: CONSTANTS.COLUMN_NAME_SHIFT.ShiftEndBreakTime,
       title: "Kết thúc",
       type: "time",
       width: "220px",
@@ -699,7 +699,7 @@ export const useAppStore = defineStore("app", () => {
       expandable: true,
     },
     {
-      key: "shiftWorkingTime",
+      key: CONSTANTS.COLUMN_NAME_SHIFT.ShiftWorkingTime,
       title: "Thời gian làm việc (giờ)",
       type: "number",
       width: "250px",
@@ -719,7 +719,7 @@ export const useAppStore = defineStore("app", () => {
       expandable: true,
     },
     {
-      key: "shiftBreakingTime",
+      key: CONSTANTS.COLUMN_NAME_SHIFT.ShiftBreakingTime,
       title: "Thời gian nghỉ giữa ca (giờ)",
       type: "number",
       width: "250px",
@@ -739,7 +739,7 @@ export const useAppStore = defineStore("app", () => {
       expandable: true,
     },
     {
-      key: "shiftStatus",
+      key: CONSTANTS.COLUMN_NAME_SHIFT.ShiftStatus,
       title: "Trạng thái",
       type: "boolean",
       width: "200px",
@@ -759,7 +759,7 @@ export const useAppStore = defineStore("app", () => {
       expandable: true,
     },
     {
-      key: "createdBy",
+      key: CONSTANTS.COLUMN_NAME_SHIFT.CreatedBy,
       title: "Người tạo",
       type: "text",
       width: "160px",
@@ -770,13 +770,16 @@ export const useAppStore = defineStore("app", () => {
       filterOptions: CONSTANTS.FilterOptionsType.Text,
 
       textAlign: "left",
-
+      render: (rowData: string | number) => {
+        return rowData ? rowData.toString() : "--";
+      },
+      
       realPos: 10,
 
       expandable: true,
     },
     {
-      key: "createdDate",
+      key: CONSTANTS.COLUMN_NAME_SHIFT.CreatedDate,
       title: "Ngày tạo",
       type: "date",
       width: "160px",
@@ -803,7 +806,7 @@ export const useAppStore = defineStore("app", () => {
       expandable: true,
     },
     {
-      key: "modifiedBy",
+      key: CONSTANTS.COLUMN_NAME_SHIFT.ModifiedBy,
       title: "Người sửa",
       type: "text",
       width: "160px",
@@ -823,7 +826,7 @@ export const useAppStore = defineStore("app", () => {
       expandable: true,
     },
     {
-      key: "modifiedDate",
+      key: CONSTANTS.COLUMN_NAME_SHIFT.ModifiedDate,
       title: "Ngày sửa",
       type: "date",
       width: "160px",

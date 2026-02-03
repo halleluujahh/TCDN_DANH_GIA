@@ -22,6 +22,7 @@ import ShiftForm from "./components/ShiftForm.vue";
 import type { FormData } from "../../types/ui/form";
 import { CONSTANTS } from "../../constants/common";
 import type { TableRow } from "../../types/ui/table-row";
+import { cloneDeep } from "lodash";
 
 /**
  * Store ca làm việc
@@ -221,6 +222,20 @@ const handleInactiveMultiple = async () => {
   await shiftStoreInstance.inactiveMultipleShifts(idsSelected.value);
 };
 /**
+ * Xử lý khi kích hoạt ca làm việc
+ * @param ids
+ */
+const handleActive = async (ids: string[]) => {
+  await shiftStoreInstance.activeMultipleShifts(new Set(ids));
+};
+/**
+ * Xử lý khi hủy kích hoạt ca làm việc
+ * @param ids
+ */
+const handleInactive = async (ids: string[]) => {
+  await shiftStoreInstance.inactiveMultipleShifts(new Set(ids));
+};
+/**
  * Xử lý khi xóa nhiều ca làm việc
  * Created By hanv 02/02/2026
  */
@@ -238,6 +253,19 @@ const handleDeleteMultiple = async () => {
   }
 
   idsSelected.value.clear();
+};
+const handleDelete = async (ids: string[]) => {
+  await shiftStoreInstance.deleteMultipleShifts(new Set(ids));
+  if (shiftStoreInstance.rows.length === 0) {
+    if (paginationRef.value.totalRecords) {
+      paginationRef.value.totalRecords =
+        paginationRef.value.totalRecords - ids.length;
+    }
+    if (paginationRef.value.totalPages) {
+      paginationRef.value.totalPages = paginationRef.value.totalPages - 1;
+    }
+    paginationRef.value.pageIndex = paginationRef.value.pageIndex - 1;
+  }
 };
 /**
  * Xử lý lấy lại dữ liệu
@@ -283,6 +311,15 @@ const handleOpenModalUpdate = (row: TableRow<Shift>) => {
   shiftModalRef.value.modalTitle = "Chỉnh sửa ca làm việc";
   shiftModalRef.value.row = row;
 };
+const handleOpenModalClonable = (row: TableRow<Shift>) => {
+  let rowClone = cloneDeep(row);
+  shiftModalRef.value.isClose = false;
+  shiftModalRef.value.modalTitle = "Thêm ca làm việc";
+
+  rowClone.data.shiftId = "";
+  rowClone.data.shiftCode = "";
+  shiftModalRef.value.row = rowClone;
+};
 /**
  * Lưu form ca làm việc
  * Created By hanv 02/02/2026
@@ -309,13 +346,26 @@ const saveShiftForm = async () => {
       (shift as any)[item.field as keyof Shift] = item.value;
     });
   });
-  await shiftStoreInstance.createShift(shift);
+
+  // Lưu ca làm việc
+  if (
+    shiftModalRef.value.row?.data.shiftId !== null &&
+    shiftModalRef.value.row?.data.shiftId !== undefined &&
+    shiftModalRef.value.row?.data.shiftId !== ""
+  ) {
+    shift.shiftId = shiftModalRef.value.row?.data.shiftId;
+    await shiftStoreInstance.updateShift(shift.shiftId, shift);
+  } else {
+    await shiftStoreInstance.createShift(shift);
+  }
 
   if (shiftStoreInstance.error) {
     return;
   }
 
+  // Đóng modal và làm mới dữ liệu
   shiftFormRef.value.clearForm();
+  shiftModalRef.value.row = null;
   shiftModalRef.value.isClose = true;
   if (paginationRef.value.totalRecords) {
     paginationRef.value.totalRecords = paginationRef.value.totalRecords + 1;
@@ -328,9 +378,18 @@ const saveShiftForm = async () => {
 };
 // =====================METHODS END========================
 
+// =====================COMPUTED START========================
+/**
+ * Dữ liệu form ca làm việc
+ * Created By hanv 02/02/2026
+ */
 const formData = computed<FormData | null>(() => {
   return shiftFormRef.value ? shiftFormRef.value.getData() : null;
 });
+/**
+ * Kiểm tra form có lỗi validate hay không
+ * Created By hanv 02/02/2026
+ */
 const isFormValidateError = computed<boolean>(() => {
   return shiftFormRef.value !== null
     ? !!(
@@ -339,6 +398,7 @@ const isFormValidateError = computed<boolean>(() => {
       )
     : false;
 });
+// =====================COMPUTED END========================
 
 // =====================WATCH START=====================
 /**
@@ -352,6 +412,16 @@ watch(
   },
   {
     deep: true,
+  },
+);
+/**
+ * Watch thay đổi kích thước trang
+ * Created By hanv 02/02/2026
+ */
+watch(
+  () => paginationRef.value.pageSize,
+  () => {
+    paginationRef.value.pageIndex = 0;
   },
 );
 /**
@@ -414,6 +484,10 @@ onMounted(() => {
       @remove-all-condition-filter="handleRemoveAllFilter"
       @handle-change-current-page="paginationRef.pageIndex = $event"
       @open-shift-modal="handleOpenModalUpdate"
+      @open-shift-modal-clonable="handleOpenModalClonable"
+      @active="handleActive"
+      @inactive="handleInactive"
+      @delete="handleDelete"
     />
     <!-- =================TABLE SHIFT END================= -->
 

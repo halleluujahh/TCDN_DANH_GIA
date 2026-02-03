@@ -1,13 +1,14 @@
 <script setup lang="ts" generic="T">
 import type { TableColumn } from "../types/ui/table-column";
 import type { TableRow } from "../types/ui/table-row";
+// @ts-ignore
 import { computed, defineModel, onUnmounted, ref } from "vue";
 // @ts-ignore
 import BaseCombobox from "./BaseCombobox.vue";
 import type { Pagination } from "../types/ui/pagination";
-import { cloneDeep } from "lodash";
 // @ts-ignore
 import BaseBtn from "./BaseBtn.vue";
+import type { ColumnFilterModal } from "../types/ui/column-filter-modal";
 
 interface TableProps<T> {
   columns: TableColumn<T>[];
@@ -15,6 +16,7 @@ interface TableProps<T> {
   idsSelected?: Set<string>;
   pagination: Pagination;
   loading?: boolean;
+  filterArrayRef: ColumnFilterModal[];
 }
 
 interface TableEmits<T> {
@@ -78,7 +80,16 @@ const isActive = (row: TableRow<T>, column: TableColumn<T>): string => {
   if (column.type !== "boolean") return "";
   return row.data[column.key] === 1 ? "active" : "inactive";
 };
-
+/**
+ * Kiểm tra có cột nào đang được lọc không
+ * @returns {Boolean} Trạng thái có cột lọc
+ */
+// @ts-ignore
+const isHasFilteredColumn = (column: TableColumn<T>): boolean => {
+  return props.filterArrayRef.some(
+    (filter: ColumnFilterModal) => filter.columnKey === column.key,
+  );
+};
 /**
  * Tính toán trạng thái vô hiệu hóa nút trang trước
  * @returns {Boolean} Trạng thái disabled
@@ -277,6 +288,7 @@ onUnmounted(() => {
                                   {{ column.title }}
                                 </span>
                                 <div
+                                  v-tooltip="'Sắp xếp dữ liệu'"
                                   v-if="column.sortable"
                                   :class="[
                                     'icon16',
@@ -288,9 +300,15 @@ onUnmounted(() => {
                             <div
                               v-if="column.filterable"
                               class="ms-th-title-icon flex-center"
+                              v-tooltip="'Lọc dữ liệu'"
                             >
                               <div
-                                class="icon16 filter--default"
+                                :class="[
+                                  'icon16',
+                                  isHasFilteredColumn(column)
+                                    ? 'filter--active'
+                                    : 'filter--default',
+                                ]"
                                 @click="$emit('filter-change', $event, column)"
                               ></div>
                             </div>
@@ -413,7 +431,7 @@ onUnmounted(() => {
           <div class="flex total-count">
             <div class="total-label">Tổng số:</div>
             <div class="total">
-              {{ rows.length || 0 }}
+              {{ pagination.totalRecords || 0 }}
             </div>
           </div>
           <div class="pagination-sticky">
@@ -432,6 +450,7 @@ onUnmounted(() => {
               </div>
               <div class="btn-next-page">
                 <base-btn
+                  v-tooltip="'Trang đầu'"
                   icon="step-backward"
                   :isHideBorder="true"
                   :isBtnPagination="true"
@@ -440,6 +459,7 @@ onUnmounted(() => {
                   @click="emit('handleChangeCurrentPage', 0)"
                 />
                 <base-btn
+                  v-tooltip="'Trang trước'"
                   icon="angle-left"
                   :isHideBorder="true"
                   :isBtnPagination="true"
@@ -450,6 +470,7 @@ onUnmounted(() => {
                   "
                 />
                 <base-btn
+                  v-tooltip="'Trang sau'"
                   icon="angle-right"
                   :isHideBorder="true"
                   :isBtnPagination="true"
@@ -460,6 +481,7 @@ onUnmounted(() => {
                   "
                 />
                 <base-btn
+                  v-tooltip="'Trang cuối'"
                   icon="step-forward"
                   :isHideBorder="true"
                   :isBtnPagination="true"
