@@ -45,7 +45,7 @@ const shiftStore = defineStore("shiftStore", {
           return { ...updatedShift };
         }
         console.log(this.rows);
-        
+
         return shift;
       });
     },
