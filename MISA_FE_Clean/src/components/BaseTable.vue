@@ -10,6 +10,7 @@ import type { Pagination } from "../types/ui/pagination";
 import BaseBtn from "./BaseBtn.vue";
 import type { ColumnFilterModal } from "../types/ui/column-filter-modal";
 
+// =====================TYPE DEFINITIONS START=====================
 interface TableProps<T> {
   columns: TableColumn<T>[];
   rows: TableRow<T>[];
@@ -27,12 +28,30 @@ interface TableEmits<T> {
   (e: "filter-change", event: Event, column: TableColumn<T>): void;
   (e: "handleChangeCurrentPage", pageIndex: number): void;
 }
+// =====================TYPE DEFINITIONS END=====================
 
+// ==================PROPS & EMITS START======================
 // @ts-ignore
 const props = defineProps<TableProps<T>>();
 // @ts-ignore
 const emit = defineEmits<TableEmits<T>>();
+// ==================PROPS & EMITS END======================
 
+// =====================REACTIVITY START========================
+/**
+ * Resize column functionality state
+ * Theo dõi: isResizing, columnIndex, startX, startWidth
+ * Created By hanv 20/01/2026
+ */
+const resizing = ref({
+  isResizing: false,
+  columnIndex: null as number | null,
+  startX: 0,
+  startWidth: 0,
+});
+// =====================REACTIVITY END========================
+
+// =====================METHODS START========================
 /**
  * Kiểm tra một hàng có được chọn hay không
  * @param {TableRow<T>} row - Hàng cần kiểm tra
@@ -90,61 +109,6 @@ const isHasFilteredColumn = (column: TableColumn<T>): boolean => {
     (filter: ColumnFilterModal) => filter.columnKey === column.key,
   );
 };
-/**
- * Tính toán trạng thái vô hiệu hóa nút trang trước
- * @returns {Boolean} Trạng thái disabled
- * Created By hanv 02/02/2026
- */
-const isDisabledPreviousPageBtn = computed<boolean>(() => {
-  return props.pagination.pageIndex === 0;
-});
-/**
- * Tính toán trạng thái vô hiệu hóa nút trang kế tiếp
- * @returns {Boolean} Trạng thái disabled
- * Created By hanv 02/02/2026
- */
-const isDisabledNextPageBtn = computed<boolean>(() => {
-  if (
-    props.pagination.pageIndex &&
-    props.pagination.totalRecords &&
-    props.pagination.totalRecords > 0
-  ) {
-    return (
-      props.pagination.pageSize * (props.pagination.pageIndex + 1) >=
-      props.pagination.totalRecords
-    );
-  }
-  return false;
-});
-/**
- * Tính toán số trang trước đó
- * @returns {Number} Chỉ số trang trước
- * Created By hanv 02/02/2026
- */
-const calculatePreviousIndexPage = computed<number>(() => {
-  return props.pagination.pageIndex > 0 ? props.pagination.pageIndex - 1 : 0;
-});
-/**
- * Tính toán số trang kế tiếp
- * @returns {Number} Chỉ số trang tiếp theo
- * Created By hanv 02/02/2026
- */
-const calculateNextIndexPage = computed<number>(() => {
-  return props.pagination.pageIndex + 1;
-});
-
-/**
- * Resize column functionality state
- * Theo dõi: isResizing, columnIndex, startX, startWidth
- * Created By hanv 20/01/2026
- */
-const resizing = ref({
-  isResizing: false,
-  columnIndex: null as number | null,
-  startX: 0,
-  startWidth: 0,
-});
-
 /**
  * Bắt đầu resize cột
  * Lưu vị trí ban đầu, thêm mouse listeners, đổi cursor
@@ -211,6 +175,52 @@ function stopResize() {
   document.body.style.cursor = "";
   document.body.style.userSelect = "";
 }
+// =====================METHODS END========================
+
+// =====================COMPUTED START=====================
+/**
+ * Tính toán trạng thái vô hiệu hóa nút trang trước
+ * @returns {Boolean} Trạng thái disabled
+ * Created By hanv 02/02/2026
+ */
+const isDisabledPreviousPageBtn = computed<boolean>(() => {
+  return props.pagination.pageIndex === 0;
+});
+/**
+ * Tính toán trạng thái vô hiệu hóa nút trang kế tiếp
+ * @returns {Boolean} Trạng thái disabled
+ * Created By hanv 02/02/2026
+ */
+const isDisabledNextPageBtn = computed<boolean>(() => {
+  if (
+    props.pagination.pageIndex &&
+    props.pagination.totalRecords &&
+    props.pagination.totalRecords > 0
+  ) {
+    return (
+      props.pagination.pageSize * (props.pagination.pageIndex + 1) >=
+      props.pagination.totalRecords
+    );
+  }
+  return false;
+});
+/**
+ * Tính toán số trang trước đó
+ * @returns {Number} Chỉ số trang trước
+ * Created By hanv 02/02/2026
+ */
+const calculatePreviousIndexPage = computed<number>(() => {
+  return props.pagination.pageIndex > 0 ? props.pagination.pageIndex - 1 : 0;
+});
+/**
+ * Tính toán số trang kế tiếp
+ * @returns {Number} Chỉ số trang tiếp theo
+ * Created By hanv 02/02/2026
+ */
+const calculateNextIndexPage = computed<number>(() => {
+  return props.pagination.pageIndex + 1;
+});
+// =====================COMPUTED END=====================
 
 /**
  * Cleanup khi component unmount
